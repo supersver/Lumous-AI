@@ -2,25 +2,27 @@ import { useState } from "react";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { login } from "../api/login";
 
 const googleProvider = new GoogleAuthProvider();
 
 export default function Login() {
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    setError(null);
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithPopup(auth, googleProvider).then(() =>
+        login().then((res) => console.log(res, "res")),
+      );
       navigate("/dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message);
+        toast(err.message, { type: "error" });
       } else {
-        setError("Google sign-in failed. Please try again.");
+        toast("Google sign-in failed. Please try again.", { type: "error" });
       }
     } finally {
       setLoading(false);
@@ -29,13 +31,11 @@ export default function Login() {
 
   return (
     <div className="flex h-screen items-center justify-center">
-      <div className="w-full max-w-sm rounded-xl shadow-md p-8 flex flex-col gap-6">
+      <div className="w-full max-w-sm rounded-xl shadow-md p-8 bg-gray-800 flex flex-col gap-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Welcome!</h1>
           <p className="text-sm text-gray-500 mt-1">Sign in to continue</p>
         </div>
-
-        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
         <button
           onClick={handleGoogleLogin}
