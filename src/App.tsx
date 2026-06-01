@@ -1,7 +1,7 @@
 import { ErrorBoundary } from "react-error-boundary";
 import { ToastContainer } from "react-toastify";
 import { AppRoutes } from "./routes/AppRoutes";
-import { AppFallback } from "./components/ErrorBoundary";
+import { AppFallback } from "./pages/misc/components/ErrorBoundary";
 
 export default function App() {
   return (
