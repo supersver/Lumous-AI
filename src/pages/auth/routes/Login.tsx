@@ -9,15 +9,16 @@ const googleProvider = new GoogleAuthProvider();
 
 export default function Login() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider).then(() =>
-        login().then((res) => console.log(res, "res")),
-      );
-      navigate("/dashboard");
+      await signInWithPopup(auth, googleProvider);
+      // Firebase user is now set, token is available
+      const res = await login();
+      console.log(res, "res");
+      if (res?.user) navigate("/dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast(err.message, { type: "error" });

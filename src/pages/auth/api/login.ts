@@ -1,19 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { API_URL } from "@/config";
-import { auth } from "@/lib/firebase";
+import { axios } from "@/lib/axios";
 
 export const login = async (): Promise<any> => {
-  const user = auth.currentUser;
-
-  const token = await user?.getIdToken();
   try {
-    const res = await axios.get(`${API_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await axios.get(`${API_URL}/auth/me`);
 
     return res?.data;
   } catch (error: any) {

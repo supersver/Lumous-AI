@@ -2,16 +2,18 @@ import Axios, { type InternalAxiosRequestConfig, AxiosHeaders } from "axios";
 
 import { API_URL } from "@/config";
 import storage from "../utils/storage";
+import { auth } from "./firebase";
 
-function authRequestInterceptor(config: InternalAxiosRequestConfig<any>) {
+async function authRequestInterceptor(config: InternalAxiosRequestConfig<any>) {
   if (!config.headers) {
     config.headers = new AxiosHeaders();
   }
 
-  const token = storage.getAccessToken();
+  const user = auth.currentUser;
 
-  if (token) {
-    config.headers.authorization = "Bearer " + `${token}`;
+  if (user) {
+    const token = await user.getIdToken(); // ← await it
+    config.headers.authorization = `Bearer ${token}`;
   }
 
   config.headers.Accept = "application/json";
