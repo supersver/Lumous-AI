@@ -8,6 +8,7 @@ import { Chats } from "@/pages/chats";
 import { useAppStore } from "@/store/useAppStore";
 import { SpinnerGapIcon } from "@phosphor-icons/react";
 import { MainLayout } from "@/components/layout";
+import { Settings } from "@/pages/settings";
 
 function AuthLoading() {
   return (
@@ -93,8 +94,8 @@ export function AppRoutes() {
           }
         >
           <Route path="/" element={<Chats />} />
-          {/* <Route path="/chats" element={<Chats />} />
-  <Route path="/settings" element={<Settings />} /> */}
+          {/* <Route path="/chats" element={<Chats />} /> */}
+          <Route path="/settings" element={<Settings />} />
         </Route>
 
         <Route path="*" element={<Navigate replace to="/" />} />
