@@ -1,16 +1,12 @@
-import { signOut } from "firebase/auth";
-
-import { auth } from "@/lib/firebase";
 import { useAppStore } from "@/store/useAppStore";
+import { useGetModels } from "../api/getModels";
 
 export function Chats() {
   const user = useAppStore((state) => state.user);
-  const logout = useAppStore((state) => state.logout);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    logout();
-  };
+  const { data: allModels } = useGetModels();
+
+  console.log(allModels, "allModels");
 
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-4 py-8 text-slate-100">
@@ -39,14 +35,6 @@ export function Chats() {
               ) : null}
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-700 px-4 text-sm font-semibold text-slate-100 transition hover:border-cyan-300 hover:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 focus:ring-offset-slate-900"
-          >
-            Sign out
-          </button>
         </div>
       </section>
     </main>
