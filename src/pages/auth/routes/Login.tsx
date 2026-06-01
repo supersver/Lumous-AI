@@ -43,7 +43,7 @@ function GoogleIcon() {
   );
 }
 
-export default function Login() {
+export function Login() {
   const navigate = useNavigate();
   const setUser = useAppStore((state) => state.setUser);
   const [loading, setLoading] = useState(false);

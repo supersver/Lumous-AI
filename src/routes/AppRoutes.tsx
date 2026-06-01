@@ -3,23 +3,16 @@ import { onAuthStateChanged } from "firebase/auth";
 import { Route, Routes, Navigate } from "react-router-dom";
 
 import { auth } from "@/lib/firebase";
-import { login } from "@/pages/auth/api/login";
-import Home from "@/pages/home";
-import Login from "@/pages/auth/routes/Login";
+import { login, Login } from "@/pages/auth";
+import { Chats } from "@/pages/chats";
 import { useAppStore } from "@/store/useAppStore";
+import { SpinnerGapIcon } from "@phosphor-icons/react";
+import { MainLayout } from "@/components/layout";
 
 function AuthLoading() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
-      <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900 px-5 py-4 shadow-xl shadow-slate-950/30">
-        <span
-          aria-hidden="true"
-          className="size-5 animate-spin rounded-full border-2 border-slate-700 border-t-cyan-300"
-        />
-        <span className="text-sm font-medium text-slate-300">
-          Restoring session
-        </span>
-      </div>
+      <SpinnerGapIcon size={28} className="animate-spin" />
     </main>
   );
 }
@@ -93,21 +86,16 @@ export function AppRoutes() {
 
         {/* Protected routes */}
         <Route
-          path="/"
           element={
             <ProtectedRoute>
-              <Home />
+              <MainLayout />
             </ProtectedRoute>
           }
-        />
-        {/* <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      /> */}
+        >
+          <Route path="/" element={<Chats />} />
+          {/* <Route path="/chats" element={<Chats />} />
+  <Route path="/settings" element={<Settings />} /> */}
+        </Route>
 
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>

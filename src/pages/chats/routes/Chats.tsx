@@ -3,7 +3,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAppStore } from "@/store/useAppStore";
 
-export default function Home() {
+export function Chats() {
   const user = useAppStore((state) => state.user);
   const logout = useAppStore((state) => state.logout);
 
