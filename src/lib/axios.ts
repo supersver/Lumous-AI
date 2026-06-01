@@ -1,6 +1,7 @@
 import Axios, { type InternalAxiosRequestConfig, AxiosHeaders } from "axios";
 
 import { API_URL } from "@/config";
+import { useAppStore } from "@/store/useAppStore";
 import storage from "../utils/storage";
 import { auth } from "./firebase";
 
@@ -12,7 +13,7 @@ async function authRequestInterceptor(config: InternalAxiosRequestConfig<any>) {
   const user = auth.currentUser;
 
   if (user) {
-    const token = await user.getIdToken(); // ← await it
+    const token = await user.getIdToken();
     config.headers.authorization = `Bearer ${token}`;
   }
 
@@ -32,17 +33,24 @@ axios.interceptors.response.use(
   },
   (error) => {
     const status = error?.response?.status;
+    const clearSession = () => {
+      storage.clear();
+      useAppStore.getState().clearUser();
+    };
 
     if (status === 401) {
-      // storage.removeAccessToken();
-      // window.location.assign(window.location.origin as unknown as string);
+      clearSession();
+
+      if (window.location.pathname !== "/login") {
+        window.location.assign("/login");
+      }
     } else if (status === 403) {
       if (window.location.pathname !== "/") {
         window.location.assign("/");
       }
     } else if (status === 422) {
-      storage.removeAccessToken();
-      window.location.assign(window.location.origin as unknown as string);
+      clearSession();
+      window.location.assign("/login");
     } else {
       console.log("API Error:", {
         url: error?.config?.url,

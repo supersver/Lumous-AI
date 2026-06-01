@@ -1,21 +1,22 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { API_URL } from "@/config";
+
 import { axios } from "@/lib/axios";
+import type { AuthUser } from "@/store/useAppStore";
 
-export const login = async (): Promise<any> => {
-  try {
-    const res = await axios.get(`${API_URL}/auth/me`);
+export interface LoginResponse {
+  user: AuthUser;
+}
 
-    return res?.data;
-  } catch (error: any) {
-    console.error("Login error:", error);
-    throw error;
-  }
+export const login = async (): Promise<LoginResponse> => {
+  const res = await axios.get<LoginResponse>("/auth/me");
+  return res.data;
 };
 
-export const useLogin = (config = {}) => {
-  return useMutation<any, Error>({
+export const useLogin = (
+  config: UseMutationOptions<LoginResponse, Error, void> = {},
+) => {
+  return useMutation<LoginResponse, Error, void>({
     mutationFn: login,
     onError: (error) => {
       toast.error(error?.message || "Login failed. Please try again.");
