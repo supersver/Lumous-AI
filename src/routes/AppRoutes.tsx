@@ -4,7 +4,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 
 import { auth } from "@/lib/firebase";
 import { login, Login } from "@/pages/auth";
-import { Chats } from "@/pages/chats";
+import { Chats, ChatIndexRedirect } from "@/pages/chats";
 import { useAppStore } from "@/store/useAppStore";
 import { SpinnerGapIcon } from "@phosphor-icons/react";
 import { MainLayout } from "@/components/layout";
@@ -93,8 +93,8 @@ export function AppRoutes() {
             </ProtectedRoute>
           }
         >
-          <Route path="/" element={<Chats />} />
-          {/* <Route path="/chats" element={<Chats />} /> */}
+          <Route path="/" element={<ChatIndexRedirect />} />
+          <Route path="/chat/:id" element={<Chats />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
 

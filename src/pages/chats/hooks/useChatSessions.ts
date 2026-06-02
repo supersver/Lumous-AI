@@ -88,7 +88,7 @@ const createInitialState = (): ChatSessionsState => {
   };
 };
 
-export function useChatSessions() {
+export function useChatSessionsState() {
   const [state, setState] = useState<ChatSessionsState>(createInitialState);
 
   useEffect(() => {
@@ -106,13 +106,15 @@ export function useChatSessions() {
     );
   }, [state.activeSessionId, state.sessions]);
 
-  const createSession = useCallback(() => {
+  const createSession = useCallback((): string => {
     const session = createBlankSession();
 
     setState((currentState) => ({
       activeSessionId: session.id,
       sessions: [session, ...currentState.sessions],
     }));
+
+    return session.id;
   }, []);
 
   const selectSession = useCallback((sessionId: string) => {
@@ -122,7 +124,9 @@ export function useChatSessions() {
     }));
   }, []);
 
-  const deleteSession = useCallback((sessionId: string) => {
+  const deleteSession = useCallback((sessionId: string): string => {
+    let nextActiveSessionId = sessionId;
+
     setState((currentState) => {
       const remainingSessions = currentState.sessions.filter(
         (session) => session.id !== sessionId,
@@ -130,6 +134,7 @@ export function useChatSessions() {
 
       if (remainingSessions.length === 0) {
         const session = createBlankSession();
+        nextActiveSessionId = session.id;
 
         return {
           activeSessionId: session.id,
@@ -137,14 +142,18 @@ export function useChatSessions() {
         };
       }
 
+      nextActiveSessionId =
+        currentState.activeSessionId === sessionId
+          ? remainingSessions[0].id
+          : currentState.activeSessionId;
+
       return {
-        activeSessionId:
-          currentState.activeSessionId === sessionId
-            ? remainingSessions[0].id
-            : currentState.activeSessionId,
+        activeSessionId: nextActiveSessionId,
         sessions: remainingSessions,
       };
     });
+
+    return nextActiveSessionId;
   }, []);
 
   const sendMessage = useCallback(

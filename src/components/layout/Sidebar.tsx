@@ -1,8 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import {
-  HouseIcon,
-  ChatCircleIcon,
   GearSixIcon,
   SignOutIcon,
   RobotIcon,
@@ -10,9 +8,9 @@ import {
 } from "@phosphor-icons/react";
 import { auth } from "@/lib/firebase";
 import { useAppStore } from "@/store/useAppStore";
+import { ChatSidebarHistory } from "./ChatSidebarHistory";
 
 const navItems = [
-  { to: "/", label: "Chats", icon: ChatCircleIcon },
   { to: "/analytics", label: "Analytics", icon: ChartBarIcon },
   { to: "/settings", label: "Settings", icon: GearSixIcon },
 ];
@@ -29,22 +27,21 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r border-slate-800 bg-slate-900 px-3 py-4">
-      {/* Brand */}
-      <div className="flex items-center gap-2.5 px-2 pb-6 pt-1">
+    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-slate-800 bg-slate-900 px-3 py-4">
+      <div className="flex items-center gap-2.5 px-2 pb-4 pt-1">
         <RobotIcon size={24} className="text-indigo-400" weight="duotone" />
         <span className="text-base font-semibold tracking-tight text-slate-100">
           ModelPilot
         </span>
       </div>
 
-      {/* Nav */}
-      <nav className="flex flex-1 flex-col gap-0.5">
+      <ChatSidebarHistory />
+
+      <nav className="mt-3 flex flex-col gap-0.5 border-t border-slate-800 pt-3">
         {navItems.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
-            end={to === "/"}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                 isActive
@@ -59,8 +56,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* User + Logout */}
-      <div className="border-t border-slate-800 pt-3">
+      <div className="mt-auto border-t border-slate-800 pt-3">
         <div className="mb-1 flex items-center gap-3 rounded-lg px-3 py-2">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-medium text-indigo-300">
             {user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase()}

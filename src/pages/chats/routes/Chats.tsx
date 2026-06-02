@@ -1,16 +1,18 @@
 import { SpinnerGapIcon, UserCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useShallow } from "zustand/shallow";
 
 import { useAppStore } from "@/store/useAppStore";
 import { useGetModels } from "../api/getModels";
-import { useChatSessions } from "../hooks/useChatSessions";
+import { useChatSessions } from "../context/ChatSessionsContext";
 import { ModelSelector } from "../components/ModelSelector";
-import { ChatHistorySidebar } from "../components/ChatHistorySidebar";
 import { PromptInput } from "../components/PromptInput";
 import { MessagesArea } from "../components/MessagesArea";
 
 export function Chats() {
+  const { id: chatId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [draft, setDraft] = useState<string>("");
   const { user, selectedModel, setSelectedModel } = useAppStore(
     useShallow((state) => ({
@@ -27,11 +29,33 @@ export function Chats() {
     activeSession,
     activeSessionId,
     createSession,
-    deleteSession,
     selectSession,
     sendMessage,
     sessions,
   } = useChatSessions();
+
+  useEffect(() => {
+    if (!chatId) return;
+
+    const sessionExists = sessions.some((session) => session.id === chatId);
+
+    if (!sessionExists) {
+      const fallbackId = sessions[0]?.id ?? createSession();
+      navigate(`/chat/${fallbackId}`, { replace: true });
+      return;
+    }
+
+    if (activeSessionId !== chatId) {
+      selectSession(chatId);
+    }
+  }, [
+    activeSessionId,
+    chatId,
+    createSession,
+    navigate,
+    selectSession,
+    sessions,
+  ]);
 
   useEffect(() => {
     if (models.length === 0) return;
@@ -62,15 +86,7 @@ export function Chats() {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-slate-950 text-slate-100 lg:flex-row">
-      <ChatHistorySidebar
-        activeSessionId={activeSessionId}
-        sessions={sessions}
-        onCreateSession={createSession}
-        onDeleteSession={deleteSession}
-        onSelectSession={selectSession}
-      />
-
+    <div className="flex h-full min-h-0 flex-col bg-slate-950 text-slate-100">
       <section className="flex min-h-0 flex-1 flex-col">
         <header className="flex flex-col gap-4 border-b border-slate-800 bg-slate-950/95 px-4 py-4 sm:px-6 xl:flex-row xl:items-start xl:justify-between">
           <div className="flex min-w-0 items-start gap-3">
