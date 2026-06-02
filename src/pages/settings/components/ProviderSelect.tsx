@@ -1,3 +1,8 @@
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+
 import type { ApiKeyProvider } from "../api/types";
 
 export interface ProviderOption {
@@ -19,20 +24,21 @@ export function ProviderSelect({
   onChange,
 }: ProviderSelectProps) {
   return (
-    <label className="block">
-      <span className="text-sm font-medium text-slate-300">Provider</span>
-      <select
+    <FormControl fullWidth disabled={disabled} size="small">
+      <InputLabel id="api-key-provider-label">Provider</InputLabel>
+      <Select
+        labelId="api-key-provider-label"
+        id="api-key-provider"
+        label="Provider"
         value={value}
-        disabled={disabled}
         onChange={(event) => onChange(event.target.value as ApiKeyProvider)}
-        className="mt-2 h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100 outline-none transition focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <MenuItem key={option.value} value={option.value}>
             {option.label}
-          </option>
+          </MenuItem>
         ))}
-      </select>
-    </label>
+      </Select>
+    </FormControl>
   );
 }

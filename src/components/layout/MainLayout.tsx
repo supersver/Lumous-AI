@@ -1,3 +1,4 @@
+import Box from "@mui/material/Box";
 import { Outlet } from "react-router-dom";
 
 import { ChatSessionsProvider } from "@/pages/chats/context/ChatSessionsContext";
@@ -6,12 +7,29 @@ import Sidebar from "./Sidebar";
 export function MainLayout() {
   return (
     <ChatSessionsProvider>
-      <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
+      <Box
+        sx={{
+          display: "flex",
+          height: "100vh",
+          overflow: "hidden",
+          bgcolor: "background.default",
+          color: "text.primary",
+        }}
+      >
         <Sidebar />
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <Box
+          component="main"
+          sx={{
+            display: "flex",
+            minHeight: 0,
+            flex: 1,
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
           <Outlet />
-        </main>
-      </div>
+        </Box>
+      </Box>
     </ChatSessionsProvider>
   );
 }

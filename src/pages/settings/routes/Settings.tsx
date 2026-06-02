@@ -1,9 +1,14 @@
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
+import Divider from "@mui/material/Divider";
+import Typography from "@mui/material/Typography";
 import { useState } from "react";
-import { ApiKeyForm, ApiKeysList, type ProviderOption } from "../components";
-import type { ApiKeyProvider } from "../api/types";
+
 import { useApiKeys } from "../api/getApiKeys";
-import { useSaveKey } from "../api/saveApiKey";
 import { useDeleteKey } from "../api/deleteApiKey";
+import { useSaveKey } from "../api/saveApiKey";
+import type { ApiKeyProvider } from "../api/types";
+import { ApiKeyForm, ApiKeysList, type ProviderOption } from "../components";
 
 const providerOptions: ProviderOption[] = [
   { label: "OpenRouter", value: "openrouter" },
@@ -53,19 +58,46 @@ export function Settings() {
   };
 
   return (
-    <div className="min-h-full px-6 py-6 text-slate-100">
-      <div className="mx-auto w-full max-w-6xl">
-        <header className="flex flex-col gap-2 border-b border-slate-800 pb-5">
-          <p className="text-sm font-semibold uppercase text-cyan-300">
+    <Box
+      sx={{
+        minHeight: "100%",
+        py: 3,
+        px: { xs: 2, sm: 3 },
+        bgcolor: "background.default",
+        color: "text.primary",
+      }}
+    >
+      <Container maxWidth="lg" disableGutters>
+        <Box sx={{ pb: 2.5 }}>
+          <Typography
+            variant="overline"
+            sx={{ color: "primary.main", fontWeight: 600, letterSpacing: 1 }}
+          >
             Settings
-          </p>
-          <h1 className="text-3xl font-semibold text-white">API keys</h1>
-          <p className="max-w-2xl text-sm leading-6 text-slate-400">
+          </Typography>
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{ mt: 0.5, fontWeight: 600 }}
+          >
+            API keys
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 560 }}>
             Manage provider credentials for ModelPilot.
-          </p>
-        </header>
+          </Typography>
+        </Box>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(280px,0.75fr)_minmax(0,1.25fr)]">
+        <Divider sx={{ mb: 3 }} />
+
+        <Box
+          sx={{
+            display: "grid",
+            gap: 3,
+            gridTemplateColumns: {
+              lg: "minmax(280px, 0.75fr) minmax(0, 1.25fr)",
+            },
+          }}
+        >
           <ApiKeyForm
             apiKey={apiKey}
             isSaving={saveKeyMutation.isPending}
@@ -83,8 +115,8 @@ export function Settings() {
             providerLabels={providerLabels}
             onDelete={handleDeleteKey}
           />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Container>
+    </Box>
   );
 }

@@ -1,4 +1,12 @@
-import { KeyIcon, SpinnerGapIcon, TrashIcon } from "@phosphor-icons/react";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import Paper from "@mui/material/Paper";
+import Skeleton from "@mui/material/Skeleton";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import { KeyIcon, TrashIcon } from "@phosphor-icons/react";
 
 import type { ApiKey } from "../api/types";
 
@@ -66,14 +74,16 @@ const formatDate = (value?: string) => {
 
 function LoadingKeys() {
   return (
-    <div className="space-y-3">
+    <Stack spacing={1.5}>
       {[0, 1, 2].map((item) => (
-        <div
+        <Skeleton
           key={item}
-          className="h-18.5 animate-pulse rounded-lg border border-slate-800 bg-slate-950"
+          variant="rounded"
+          height={74}
+          sx={{ bgcolor: "background.default" }}
         />
       ))}
-    </div>
+    </Stack>
   );
 }
 
@@ -85,79 +95,130 @@ export function ApiKeysList({
   onDelete,
 }: ApiKeysListProps) {
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900 p-5 shadow-xl shadow-slate-950/20">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold text-white">Existing keys</h2>
-          <p className="text-sm text-slate-400">{apiKeys.length} saved</p>
-        </div>
-        <div className="grid size-10 place-items-center rounded-lg bg-indigo-400/10 text-indigo-300">
+    <Paper
+      component="section"
+      elevation={0}
+      sx={{
+        p: 3,
+        border: 1,
+        borderColor: "divider",
+        bgcolor: "background.paper",
+      }}
+    >
+      <Stack
+        direction="row"
+        sx={{ justifyContent: "space-between", alignItems: "center" }}
+      >
+        <Box>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            Existing keys
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {apiKeys.length} saved
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            display: "grid",
+            placeItems: "center",
+            width: 40,
+            height: 40,
+            borderRadius: 1,
+            bgcolor: "secondary.dark",
+            color: "secondary.light",
+            opacity: 0.9,
+          }}
+        >
           <KeyIcon size={20} weight="duotone" />
-        </div>
-      </div>
+        </Box>
+      </Stack>
 
-      <div className="mt-6">
+      <Box sx={{ mt: 3 }}>
         {isLoading ? (
           <LoadingKeys />
         ) : apiKeys.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-700 bg-slate-950 px-4 py-8 text-center">
-            <p className="text-sm font-medium text-slate-200">
-              No API keys saved
-            </p>
-          </div>
+          <Alert severity="info" variant="outlined">
+            No API keys saved yet.
+          </Alert>
         ) : (
-          <div className="space-y-3">
+          <Stack spacing={1.5}>
             {apiKeys.map((apiKey) => {
               const createdAt = formatDate(apiKey.createdAt);
               const isDeleting = deletingKeyId === apiKey.id;
 
               return (
-                <div
+                <Paper
                   key={apiKey.id}
-                  className="flex min-h-18.5 items-center justify-between gap-4 rounded-lg border border-slate-800 bg-slate-950 px-4 py-3"
+                  variant="outlined"
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
+                    px: 2,
+                    py: 1.5,
+                    bgcolor: "background.default",
+                    borderColor: "divider",
+                  }}
                 >
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <p className="text-sm font-semibold text-slate-100">
+                  <Box sx={{ minWidth: 0 }}>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ alignItems: "center", flexWrap: "wrap" }}
+                    >
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {providerLabels[apiKey.provider] ?? apiKey.provider}
-                      </p>
+                      </Typography>
                       {apiKey.name ? (
-                        <span className="text-xs text-slate-500">
+                        <Typography variant="caption" color="text.secondary">
                           {apiKey.name}
-                        </span>
+                        </Typography>
                       ) : null}
-                    </div>
-                    <p className="mt-1 truncate font-mono text-sm text-slate-400">
+                    </Stack>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      noWrap
+                      sx={{ fontFamily: "monospace", mt: 0.5 }}
+                    >
                       {getKeyPreview(apiKey)}
-                    </p>
+                    </Typography>
                     {createdAt ? (
-                      <p className="mt-1 text-xs text-slate-600">
+                      <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: "block" }}>
                         Added {createdAt}
-                      </p>
+                      </Typography>
                     ) : null}
-                  </div>
+                  </Box>
 
-                  <button
-                    type="button"
+                  <IconButton
+                    size="small"
                     disabled={isDeleting}
-                    onClick={() => onDelete(apiKey.id)}
                     aria-label={`Delete ${
                       providerLabels[apiKey.provider] ?? apiKey.provider
                     } API key`}
-                    className="grid size-10 shrink-0 place-items-center rounded-lg border border-slate-700 text-slate-400 transition hover:border-red-400 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+                    onClick={() => onDelete(apiKey.id)}
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      "&:hover": {
+                        borderColor: "error.main",
+                        color: "error.main",
+                      },
+                    }}
                   >
                     {isDeleting ? (
-                      <SpinnerGapIcon size={18} className="animate-spin" />
+                      <CircularProgress size={18} />
                     ) : (
                       <TrashIcon size={18} />
                     )}
-                  </button>
-                </div>
+                  </IconButton>
+                </Paper>
               );
             })}
-          </div>
+          </Stack>
         )}
-      </div>
-    </section>
+      </Box>
+    </Paper>
   );
 }
