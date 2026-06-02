@@ -6,15 +6,25 @@ import { auth } from "@/lib/firebase";
 import { login, Login } from "@/pages/auth";
 import { Chats, ChatIndexRedirect } from "@/pages/chats";
 import { useAppStore } from "@/store/useAppStore";
-import { SpinnerGapIcon } from "@phosphor-icons/react";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
 import { MainLayout } from "@/components/layout";
 import { Settings } from "@/pages/settings";
 
 function AuthLoading() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
-      <SpinnerGapIcon size={28} className="animate-spin" />
-    </main>
+    <Box
+      component="main"
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "background.default",
+      }}
+    >
+      <CircularProgress size={28} />
+    </Box>
   );
 }
 

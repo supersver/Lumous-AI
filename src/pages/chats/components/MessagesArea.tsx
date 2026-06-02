@@ -1,7 +1,12 @@
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import { ChatCircleIcon } from "@phosphor-icons/react";
 import type { RefObject } from "react";
+
 import type { ChatSession } from "../types";
 import { MessageBubble } from "./MessageBubble";
-import { ChatCircleIcon } from "@phosphor-icons/react";
 
 interface MessagesAreaProps {
   bottomRef: RefObject<HTMLDivElement | null>;
@@ -16,25 +21,61 @@ export function MessagesArea({
 }: MessagesAreaProps) {
   if (!session || session.messages.length === 0) {
     return (
-      <div className="flex min-h-0 flex-1 items-center justify-center px-6 py-10">
-        <div className="max-w-sm text-center">
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-lg border border-slate-800 bg-slate-900 text-indigo-300">
+      <Box
+        sx={{
+          display: "flex",
+          minHeight: 0,
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          px: 3,
+          py: 5,
+        }}
+      >
+        <Stack
+          spacing={2}
+          sx={{ maxWidth: 360, textAlign: "center", alignItems: "center" }}
+        >
+          <Paper
+            elevation={0}
+            sx={{
+              display: "grid",
+              placeItems: "center",
+              width: 48,
+              height: 48,
+              border: 1,
+              borderColor: "divider",
+              bgcolor: "background.paper",
+              color: "secondary.light",
+            }}
+          >
             <ChatCircleIcon size={22} weight="duotone" />
-          </div>
-          <h2 className="mt-4 text-lg font-semibold text-white">
+          </Paper>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
             No messages yet
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
             Your next conversation will appear here.
-          </p>
-        </div>
-      </div>
+          </Typography>
+        </Stack>
+      </Box>
     );
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
+    <Box
+      sx={{
+        minHeight: 0,
+        flex: 1,
+        overflowY: "auto",
+        px: { xs: 2, sm: 3 },
+        py: 3,
+      }}
+    >
+      <Stack
+        spacing={2.5}
+        sx={{ mx: "auto", width: "100%", maxWidth: 896 }}
+      >
         {session.messages.map((message) => (
           <MessageBubble
             key={message.id}
@@ -42,8 +83,8 @@ export function MessagesArea({
             userInitial={userInitial}
           />
         ))}
-        <div ref={bottomRef} />
-      </div>
-    </div>
+        <Box ref={bottomRef} />
+      </Stack>
+    </Box>
   );
 }

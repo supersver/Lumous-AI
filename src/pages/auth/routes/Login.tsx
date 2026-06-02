@@ -1,10 +1,16 @@
-import { useState } from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import {
   browserLocalPersistence,
   GoogleAuthProvider,
   setPersistence,
   signInWithPopup,
 } from "firebase/auth";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -43,6 +49,50 @@ function GoogleIcon() {
   );
 }
 
+function BrandMark({ inverted = false }: { inverted?: boolean }) {
+  return (
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+      <Box
+        sx={{
+          display: "grid",
+          placeItems: "center",
+          width: 44,
+          height: 44,
+          borderRadius: 1,
+          bgcolor: inverted ? "grey.900" : "primary.main",
+          color: inverted ? "primary.light" : "primary.contrastText",
+          typography: "subtitle1",
+          fontWeight: 800,
+        }}
+      >
+        MP
+      </Box>
+      <Box>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontWeight: 600,
+            color: inverted ? "grey.100" : "text.primary",
+          }}
+        >
+          ModelPilot
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 600,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+            color: inverted ? "primary.light" : "text.secondary",
+          }}
+        >
+          Workspace
+        </Typography>
+      </Box>
+    </Stack>
+  );
+}
+
 export function Login() {
   const navigate = useNavigate();
   const setUser = useAppStore((state) => state.setUser);
@@ -77,84 +127,127 @@ export function Login() {
   };
 
   return (
-    <main className="grid min-h-screen bg-slate-100 text-slate-950 lg:grid-cols-[1.05fr_0.95fr]">
-      <section className="hidden min-h-screen flex-col justify-between bg-slate-950 px-12 py-10 text-white lg:flex">
-        <div className="flex items-center gap-3">
-          <div className="grid size-11 place-items-center rounded-lg bg-cyan-300 text-base font-black text-slate-950">
-            MP
-          </div>
-          <div>
-            <p className="text-base font-semibold">ModelPilot</p>
-            <p className="text-xs font-medium uppercase text-cyan-200">
-              Workspace
-            </p>
-          </div>
-        </div>
-
-        <div className="max-w-xl">
-          <p className="text-sm font-semibold uppercase text-amber-300">
-            Welcome back
-          </p>
-          <h1 className="mt-5 text-5xl font-semibold leading-tight text-white">
-            Pick up your model workflow where you left it.
-          </h1>
-          <p className="mt-5 max-w-lg text-base leading-7 text-slate-300">
+    <Box
+      component="main"
+      sx={{
+        display: "grid",
+        minHeight: "100vh",
+        gridTemplateColumns: { lg: "1.05fr 0.95fr" },
+        bgcolor: "grey.100",
+        color: "text.primary",
+      }}
+    >
+      <Box
+        sx={{
+          display: { xs: "none", lg: "flex" },
+          minHeight: "100vh",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          bgcolor: "grey.900",
+          color: "grey.100",
+          px: 6,
+          py: 5,
+        }}
+      >
+        <BrandMark />
+        <Box sx={{ maxWidth: 560 }}>
+          <Typography
+            variant="overline"
+            sx={{ color: "warning.light", fontWeight: 600, letterSpacing: 1 }}
+          >
+            Welcome!
+          </Typography>
+          <Typography
+            variant="h3"
+            sx={{ mt: 2, fontWeight: 600, lineHeight: 1.2 }}
+          >
+            Pick up your model. Chat. Analyze.
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{ mt: 2, color: "grey.400", lineHeight: 1.7 }}
+          >
             Sign in with Google to return to your ModelPilot workspace.
-          </p>
-        </div>
+          </Typography>
+        </Box>
+        <Typography variant="body2" color="grey.600">
+          ModelPilot account access
+        </Typography>
+      </Box>
 
-        <p className="text-sm text-slate-500">ModelPilot account access</p>
-      </section>
+      <Box
+        sx={{
+          display: "flex",
+          minHeight: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+          px: { xs: 2.5, sm: 4 },
+          py: 4,
+        }}
+      >
+        <Box sx={{ width: "100%", maxWidth: 420 }}>
+          <Box sx={{ mb: 4, display: { xs: "block", lg: "none" } }}>
+            <BrandMark />
+          </Box>
 
-      <section className="flex min-h-screen items-center justify-center px-5 py-8 sm:px-8">
-        <div className="w-full max-w-md">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <div className="grid size-11 place-items-center rounded-lg bg-slate-950 text-base font-black text-cyan-200">
-              MP
-            </div>
-            <div>
-              <p className="text-base font-semibold text-slate-950">
-                ModelPilot
-              </p>
-              <p className="text-xs font-medium uppercase text-slate-500">
-                Workspace
-              </p>
-            </div>
-          </div>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 3.5, sm: 4 },
+              border: 1,
+              borderColor: "grey.200",
+              boxShadow: "0 20px 45px rgba(15, 23, 42, 0.08)",
+            }}
+          >
+            <Typography
+              variant="overline"
+              sx={{ color: "primary.dark", fontWeight: 600, letterSpacing: 1 }}
+            >
+              Sign in
+            </Typography>
+            <Typography variant="h4" sx={{ mt: 1.5, fontWeight: 600 }}>
+              Continue to ModelPilot
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 1.5, lineHeight: 1.7 }}
+            >
+              Use the Google account connected to your workspace.
+            </Typography>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-7 shadow-xl shadow-slate-300/40 sm:p-8">
-            <div>
-              <p className="text-sm font-semibold uppercase text-cyan-700">
-                Sign in
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-                Continue to ModelPilot
-              </h2>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Use the Google account connected to your workspace.
-              </p>
-            </div>
-
-            <button
+            <Button
               type="button"
-              onClick={handleGoogleLogin}
+              variant="outlined"
+              fullWidth
               disabled={loading}
               aria-busy={loading}
-              className="mt-8 inline-flex h-12 w-full items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+              onClick={handleGoogleLogin}
+              startIcon={
+                loading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <GoogleIcon />
+                )
+              }
+              sx={{
+                mt: 4,
+                height: 48,
+                justifyContent: "center",
+                borderColor: "grey.300",
+                color: "grey.900",
+                bgcolor: "grey.50",
+                "&:hover": {
+                  borderColor: "grey.400",
+                  bgcolor: "grey.400",
+                },
+              }}
             >
-              {loading ? (
-                <span
-                  aria-hidden="true"
-                  className="size-5 rounded-full border-2 border-slate-300 border-t-slate-950 animate-spin"
-                />
-              ) : (
-                <GoogleIcon />
-              )}
-              <span>{loading ? "Signing in..." : "Continue with Google"}</span>
-            </button>
-          </div>
-        </div>
-      </section>
-    </main>
+              {loading ? "Signing in..." : "Continue with Google"}
+            </Button>
+          </Paper>
+        </Box>
+      </Box>
+    </Box>
   );
 }

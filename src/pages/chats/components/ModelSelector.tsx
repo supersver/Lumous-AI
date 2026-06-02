@@ -1,7 +1,13 @@
+import Alert from "@mui/material/Alert";
+import FormControl from "@mui/material/FormControl";
+import FormHelperText from "@mui/material/FormHelperText";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
 import { useMemo } from "react";
-import type { Model } from "../api/getModels";
+
 import type { SelectedModel } from "@/store/useAppStore";
-import { WarningCircleIcon } from "@phosphor-icons/react";
+import type { Model } from "../api/getModels";
 
 interface ModelSelectorProps {
   isError: boolean;
@@ -33,45 +39,43 @@ export function ModelSelector({
     onModelChange(model ? { id: model.id, name: model.name } : null);
   };
 
+  const emptyLabel = isLoading
+    ? "Loading models..."
+    : isError
+      ? "Models unavailable"
+      : "Select model";
+
   return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <label
-        htmlFor="chat-model"
-        className="text-xs font-medium uppercase text-slate-500"
-      >
-        Model
-      </label>
-      <select
+    <FormControl
+      size="small"
+      disabled={isLoading || isError || models.length === 0}
+      sx={{ minWidth: { xs: "100%", sm: 320 } }}
+    >
+      <InputLabel id="chat-model-label">Model</InputLabel>
+      <Select
+        labelId="chat-model-label"
         id="chat-model"
+        label="Model"
         value={selectedModel?.id ?? ""}
-        disabled={isLoading || isError || models.length === 0}
         onChange={(event) => handleModelChange(event.target.value)}
-        className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm font-medium text-slate-100 outline-none transition-colors hover:border-slate-600 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-60 sm:w-80"
       >
-        <option value="">
-          {isLoading
-            ? "Loading models..."
-            : isError
-              ? "Models unavailable"
-              : "Select model"}
-        </option>
+        <MenuItem value="">{emptyLabel}</MenuItem>
         {models.map((model) => (
-          <option key={model.id} value={model.id}>
-            {model.name} - {formatContextLength(model.contextLength)} context
-          </option>
+          <MenuItem key={model.id} value={model.id}>
+            {model.name} · {formatContextLength(model.contextLength)} context
+          </MenuItem>
         ))}
-      </select>
-      <div className="min-h-5 text-xs text-slate-500">
-        {activeModel ? (
-          <span>{formatContextLength(activeModel.contextLength)} tokens</span>
-        ) : null}
-        {isError ? (
-          <span className="flex items-center gap-1 text-red-300">
-            <WarningCircleIcon size={14} />
-            Could not load models.
-          </span>
-        ) : null}
-      </div>
-    </div>
+      </Select>
+      {activeModel ? (
+        <FormHelperText>
+          {formatContextLength(activeModel.contextLength)} tokens
+        </FormHelperText>
+      ) : null}
+      {isError ? (
+        <Alert severity="error" sx={{ mt: 1 }}>
+          Could not load models.
+        </Alert>
+      ) : null}
+    </FormControl>
   );
 }

@@ -1,6 +1,7 @@
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { SpinnerGapIcon } from "@phosphor-icons/react";
 
 import { useChatSessions } from "../context/ChatSessionsContext";
 
@@ -11,12 +12,19 @@ export function ChatIndexRedirect() {
   useEffect(() => {
     const targetId = sessions[0]?.id ?? createSession();
     navigate(`/chat/${targetId}`, { replace: true });
-    // Only redirect once when landing on /
   }, [createSession, navigate, sessions[0]?.id]);
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-slate-950 text-slate-400">
-      <SpinnerGapIcon size={24} className="animate-spin" />
-    </div>
+    <Box
+      sx={{
+        display: "flex",
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "background.default",
+      }}
+    >
+      <CircularProgress size={28} />
+    </Box>
   );
 }

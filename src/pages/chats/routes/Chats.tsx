@@ -1,14 +1,19 @@
-import { SpinnerGapIcon, UserCircleIcon } from "@phosphor-icons/react";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import { UserCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useShallow } from "zustand/shallow";
 
 import { useAppStore } from "@/store/useAppStore";
 import { useGetModels } from "../api/getModels";
-import { useChatSessions } from "../context/ChatSessionsContext";
+import { MessagesArea } from "../components/MessagesArea";
 import { ModelSelector } from "../components/ModelSelector";
 import { PromptInput } from "../components/PromptInput";
-import { MessagesArea } from "../components/MessagesArea";
+import { useChatSessions } from "../context/ChatSessionsContext";
 
 export function Chats() {
   const { id: chatId } = useParams<{ id: string }>();
@@ -86,57 +91,111 @@ export function Chats() {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-slate-950 text-slate-100">
-      <section className="flex min-h-0 flex-1 flex-col">
-        <header className="flex flex-col gap-4 border-b border-slate-800 bg-slate-950/95 px-4 py-4 sm:px-6 xl:flex-row xl:items-start xl:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-slate-800 bg-slate-900 text-indigo-300">
-              <UserCircleIcon size={22} weight="duotone" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-medium uppercase text-cyan-300">
-                ModelPilot
-              </p>
-              <h1 className="truncate text-2xl font-semibold text-white">
-                {activeSession?.title ?? "New chat"}
-              </h1>
-              <p className="mt-1 truncate text-sm text-slate-500">
-                {activeSession?.messages.length ?? 0} messages
-              </p>
-            </div>
-          </div>
+    <Box
+      sx={{
+        display: "flex",
+        height: "100%",
+        minHeight: 0,
+        flexDirection: "column",
+        bgcolor: "background.default",
+        color: "text.primary",
+      }}
+    >
+      <Box
+        component="header"
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", xl: "row" },
+          gap: 2,
+          borderBottom: 1,
+          borderColor: "divider",
+          px: { xs: 2, sm: 3 },
+          py: 2,
+          alignItems: { xl: "flex-start" },
+          justifyContent: { xl: "space-between" },
+        }}
+      >
+        <Stack direction="row" spacing={1.5} sx={{ minWidth: 0, alignItems: "flex-start" }}>
+          <Avatar
+            variant="rounded"
+            sx={{
+              width: 44,
+              height: 44,
+              bgcolor: "background.paper",
+              color: "secondary.light",
+              border: 1,
+              borderColor: "divider",
+            }}
+          >
+            <UserCircleIcon size={22} weight="duotone" />
+          </Avatar>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              variant="overline"
+              sx={{ color: "primary.main", lineHeight: 1.5 }}
+            >
+              ModelPilot
+            </Typography>
+            <Typography variant="h5" noWrap sx={{ fontWeight: 600 }}>
+              {activeSession?.title ?? "New chat"}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" noWrap>
+              {activeSession?.messages.length ?? 0} messages
+            </Typography>
+          </Box>
+        </Stack>
 
-          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between xl:justify-end">
-            <ModelSelector
-              isError={modelsQuery.isError}
-              isLoading={modelsQuery.isLoading}
-              models={models}
-              selectedModel={selectedModel}
-              onModelChange={setSelectedModel}
-            />
-            {modelsQuery.isLoading ? (
-              <div className="flex h-10 items-center gap-2 rounded-lg border border-slate-800 px-3 text-sm text-slate-400">
-                <SpinnerGapIcon size={16} className="animate-spin" />
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1.5}
+          sx={{
+            minWidth: 0,
+            alignItems: { sm: "flex-start" },
+            justifyContent: { xl: "flex-end" },
+          }}
+        >
+          <ModelSelector
+            isError={modelsQuery.isError}
+            isLoading={modelsQuery.isLoading}
+            models={models}
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
+          />
+          {modelsQuery.isLoading ? (
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                height: 40,
+                alignItems: "center",
+                px: 1.5,
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 1,
+              }}
+            >
+              <CircularProgress size={16} />
+              <Typography variant="body2" color="text.secondary">
                 Loading
-              </div>
-            ) : null}
-          </div>
-        </header>
+              </Typography>
+            </Stack>
+          ) : null}
+        </Stack>
+      </Box>
 
-        <MessagesArea
-          bottomRef={messagesEndRef}
-          session={activeSession}
-          userInitial={userInitial}
-        />
+      <MessagesArea
+        bottomRef={messagesEndRef}
+        session={activeSession}
+        userInitial={userInitial}
+      />
 
-        <PromptInput
-          canSend={canSend}
-          draft={draft}
-          selectedModelName={selectedModel?.name}
-          onDraftChange={setDraft}
-          onSend={handleSendPrompt}
-        />
-      </section>
-    </div>
+      <PromptInput
+        canSend={canSend}
+        draft={draft}
+        selectedModelName={selectedModel?.name}
+        onDraftChange={setDraft}
+        onSend={handleSendPrompt}
+      />
+    </Box>
   );
 }

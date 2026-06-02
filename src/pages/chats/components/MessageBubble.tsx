@@ -1,6 +1,13 @@
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import { RobotIcon } from "@phosphor-icons/react";
-import type { ChatMessage } from "../types";
+
 import { formatTime } from "@/utils/time";
+import type { ChatMessage } from "../types";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -11,39 +18,73 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
   const isUser = message.role === "user";
 
   return (
-    <article
-      className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}
+    <Stack
+      component="article"
+      direction={isUser ? "row-reverse" : "row"}
+      spacing={1.5}
+      sx={{ alignItems: "flex-start" }}
     >
-      <div
-        className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border ${
-          isUser
-            ? "border-cyan-500/30 bg-cyan-400/10 text-cyan-200"
-            : "border-indigo-500/30 bg-indigo-400/10 text-indigo-200"
-        }`}
+      <Avatar
+        variant="rounded"
+        sx={{
+          width: 36,
+          height: 36,
+          bgcolor: isUser ? "primary.dark" : "secondary.dark",
+          color: isUser ? "primary.light" : "secondary.light",
+          border: 1,
+          borderColor: isUser ? "primary.main" : "secondary.main",
+        }}
       >
         {isUser ? (
-          <span className="text-sm font-semibold">{userInitial}</span>
+          <Typography variant="caption" sx={{ fontWeight: 600 }}>
+            {userInitial}
+          </Typography>
         ) : (
           <RobotIcon size={18} weight="duotone" />
         )}
-      </div>
+      </Avatar>
 
-      <div className={`min-w-0 max-w-3xl ${isUser ? "text-right" : ""}`}>
-        <div className="mb-1 flex items-center gap-2 text-xs text-slate-500">
-          <span>{isUser ? "You" : "ModelPilot"}</span>
-          <span>{formatTime(message.createdAt)}</span>
-          {message.modelName ? <span>{message.modelName}</span> : null}
-        </div>
-        <div
-          className={`whitespace-pre-wrap rounded-lg border px-4 py-3 text-sm leading-6 shadow-sm ${
-            isUser
-              ? "border-cyan-500/20 bg-cyan-500/10 text-slate-100"
-              : "border-slate-800 bg-slate-900 text-slate-200"
-          }`}
+      <Box sx={{ minWidth: 0, maxWidth: 768, textAlign: isUser ? "right" : "left" }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            mb: 0.5,
+            alignItems: "center",
+            justifyContent: isUser ? "flex-end" : "flex-start",
+            flexWrap: "wrap",
+          }}
         >
-          {message.content}
-        </div>
-      </div>
-    </article>
+          <Typography variant="caption" color="text.secondary">
+            {isUser ? "You" : "ModelPilot"}
+          </Typography>
+          <Typography variant="caption" color="text.disabled">
+            {formatTime(message.createdAt)}
+          </Typography>
+          {message.modelName ? (
+            <Chip label={message.modelName} size="small" variant="outlined" />
+          ) : null}
+        </Stack>
+        <Paper
+          elevation={0}
+          sx={{
+            px: 2,
+            py: 1.5,
+            textAlign: "left",
+            border: 1,
+            borderColor: isUser ? "primary.dark" : "divider",
+            bgcolor: isUser ? "primary.dark" : "background.paper",
+            color: "text.primary",
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{ whiteSpace: "pre-wrap", lineHeight: 1.7 }}
+          >
+            {message.content}
+          </Typography>
+        </Paper>
+      </Box>
+    </Stack>
   );
 }
