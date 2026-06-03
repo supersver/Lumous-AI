@@ -19,6 +19,38 @@ export interface ChatSession {
   title: string;
   createdAt: string;
   updatedAt: string;
-  modelName?: string;
+  model?: string;
   messages: ChatMessage[];
+}
+
+// APIs
+
+export interface SendMessageInput {
+  chatId: string;
+  content: string;
+  model: string;
+}
+
+export interface SendMessageResponseMessage {
+  id: string;
+  chatId: string;
+  role: "assistant";
+  content: string;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  createdAt: string;
+}
+
+export interface SendMessageResponseUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  estimatedCost: string;
+  latencyMs: number;
+}
+
+export interface SendMessageResponse {
+  message: SendMessageResponseMessage;
+  usage: SendMessageResponseUsage;
 }

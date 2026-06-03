@@ -1,18 +1,17 @@
-import Box from "@mui/material/Box";
-import CircularProgress from "@mui/material/CircularProgress";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
-import { useChatSessions } from "../context/ChatSessionsContext";
+import { auth } from "@/lib/firebase";
+import { useAppStore } from "@/store/useAppStore";
+import { Box, Typography } from "@mui/material";
 
 export function ChatIndexRedirect() {
-  const navigate = useNavigate();
-  const { createSession, sessions } = useChatSessions();
+  const user = useAppStore((s) => s.user);
 
-  useEffect(() => {
-    const targetId = sessions[0]?.id ?? createSession();
-    navigate(`/chat/${targetId}`, { replace: true });
-  }, [createSession, navigate, sessions[0]?.id]);
+  // const navigate = useNavigate();
+  // const { createSession, sessions } = useChatSessions();
+
+  // useEffect(() => {
+  //   const targetId = sessions[0]?.id ?? createSession();
+  //   navigate(`/chat/${targetId}`, { replace: true });
+  // }, [createSession, navigate, sessions[0]?.id]);
 
   return (
     <Box
@@ -24,7 +23,8 @@ export function ChatIndexRedirect() {
         bgcolor: "background.default",
       }}
     >
-      <CircularProgress size={28} />
+      {/* <CircularProgress size={28} /> */}
+      <Typography>Hello! {user?.name}</Typography>
     </Box>
   );
 }

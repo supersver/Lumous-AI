@@ -1,16 +1,17 @@
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import CircularProgress from "@mui/material/CircularProgress";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import {
+  Avatar,
+  Box,
+  CircularProgress,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { UserCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useShallow } from "zustand/shallow";
 
 import { useAppStore } from "@/store/useAppStore";
 import { useGetModels } from "../api/getModels";
-import { useSendMessage } from "../api/sendMessage";
 import { MessagesArea } from "../components/MessagesArea";
 import { ModelSelector } from "../components/ModelSelector";
 import { PromptInput } from "../components/PromptInput";
@@ -18,7 +19,7 @@ import { useChatSessions } from "../context/ChatSessionsContext";
 
 export function Chats() {
   const { id: chatId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [draft, setDraft] = useState<string>("");
   const { user, selectedModel, setSelectedModel } = useAppStore(
     useShallow((state) => ({
@@ -33,37 +34,35 @@ export function Chats() {
   const models = modelsQuery.data ?? [];
   const {
     activeSession,
-    activeSessionId,
-    appendAssistantMessage,
-    createSession,
-    selectSession,
+    // activeSessionId,
+    // createSession,
+    // selectSession,
     sendMessage: addUserMessage,
-    sessions,
+    // sessions,
+    isSending,
   } = useChatSessions();
-  const sendMessageMutation = useSendMessage();
 
-  useEffect(() => {
-    if (!chatId) return;
+  // useEffect(() => {
+  //   if (!chatId) return;
 
-    const sessionExists = sessions.some((session) => session.id === chatId);
+  //   const sessionExists = sessions.some((session) => session.id === chatId);
 
-    if (!sessionExists) {
-      const fallbackId = sessions[0]?.id ?? createSession();
-      navigate(`/chat/${fallbackId}`, { replace: true });
-      return;
-    }
+  //   if (!sessionExists) {
+  //     const fallbackId = sessions[0]?.id ?? createSession();
+  //     navigate(`/chat/${fallbackId}`, { replace: true });
+  //     return;
+  //   }
 
-    if (activeSessionId !== chatId) {
-      selectSession(chatId);
-    }
-  }, [
-    activeSessionId,
-    chatId,
-    createSession,
-    navigate,
-    selectSession,
-    sessions,
-  ]);
+  //   if (activeSessionId !== chatId) {
+  //     selectSession(chatId);
+  //   }
+  // }, [
+  //   activeSessionId,
+  //   chatId,
+  //   createSession,
+  //   selectSession,
+  //   sessions,
+  // ]);
 
   useEffect(() => {
     if (models.length === 0) return;
@@ -78,19 +77,14 @@ export function Chats() {
     }
   }, [models, selectedModel?.id, setSelectedModel]);
 
-  const isSending = sendMessageMutation.isPending;
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeSession?.id, activeSession?.messages.length, isSending]);
+  }, [activeSession?.id, activeSession?.messages.length]);
 
   const userInitial =
     user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "M";
   const canSend =
-    draft.trim().length > 0 &&
-    Boolean(selectedModel) &&
-    Boolean(chatId) &&
-    !isSending;
+    draft.trim().length > 0 && Boolean(selectedModel) && Boolean(chatId);
 
   const handleSendPrompt = () => {
     if (!canSend || !chatId || !selectedModel) return;
@@ -98,26 +92,6 @@ export function Chats() {
     const content = draft.trim();
     addUserMessage(content, selectedModel);
     setDraft("");
-
-    sendMessageMutation.mutate(
-      {
-        chatId,
-        content,
-        model: selectedModel.id,
-      },
-      {
-        onSuccess: (data) => {
-          appendAssistantMessage(chatId, {
-            id: data.message.id,
-            role: data.message.role,
-            content: data.message.content,
-            createdAt: data.message.createdAt,
-            modelId: selectedModel.id,
-            modelName: selectedModel.name,
-          });
-        },
-      },
-    );
   };
 
   return (

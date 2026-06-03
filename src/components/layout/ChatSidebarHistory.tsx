@@ -1,15 +1,18 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
+import {
+  Box,
+  Button,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemText,
+} from "@mui/material";
 import { PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import type { MouseEvent } from "react";
 import { NavLink, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useChatSessions } from "@/pages/chats/context/ChatSessionsContext";
 import { formatDate } from "@/utils/date";
+import { useAppStore } from "@/store/useAppStore";
 
 export function ChatSidebarHistory() {
   const navigate = useNavigate();
@@ -17,8 +20,10 @@ export function ChatSidebarHistory() {
   const { id: activeRouteId } = useParams();
   const { createSession, deleteSession, sessions } = useChatSessions();
 
+  const { selectedModel } = useAppStore();
+
   const handleNewChat = () => {
-    const sessionId = createSession();
+    const sessionId = createSession(selectedModel?.id ?? "");
     navigate(`/chat/${sessionId}`);
   };
 
@@ -29,7 +34,7 @@ export function ChatSidebarHistory() {
     event.preventDefault();
     event.stopPropagation();
 
-    const nextSessionId = deleteSession(sessionId);
+    const nextSessionId = deleteSession(sessionId, selectedModel?.id ?? "");
 
     if (activeRouteId === sessionId) {
       navigate(`/chat/${nextSessionId}`, { replace: true });
@@ -37,7 +42,15 @@ export function ChatSidebarHistory() {
   };
 
   return (
-    <Box sx={{ display: "flex", minHeight: 0, flex: 1, flexDirection: "column", gap: 1 }}>
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: 0,
+        flex: 1,
+        flexDirection: "column",
+        gap: 1,
+      }}
+    >
       <Button
         variant="outlined"
         fullWidth
@@ -87,7 +100,7 @@ export function ChatSidebarHistory() {
               >
                 <ListItemText
                   primary={session.title}
-                  secondary={`${session.messages.length} messages · ${formatDate(session.updatedAt)}`}
+                  secondary={`${session?.messages?.length} messages · ${formatDate(session.updatedAt)}`}
                   slotProps={{
                     primary: {
                       noWrap: true,

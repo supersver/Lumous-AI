@@ -1,22 +1,34 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { axios } from "@/lib/axios";
+import type { ChatSession } from "../types";
 
-export interface Chats {
-  id: string;
-  message: string;
+export interface GetChatsParams {
+  limit?: number;
+  offset?: number;
 }
 
-export const getChats = async (): Promise<Chats[]> => {
-  const res = await axios.get<Chats[]>("/chats");
+export const chatsQueryKey = ["chats"] as const;
+
+export const getChats = async (
+  params: GetChatsParams = {},
+): Promise<ChatSession[]> => {
+  const res = await axios.get<ChatSession[]>("/chats", {
+    params: { limit: 20, offset: 0, ...params },
+  });
+
   return res.data;
 };
 
-export const useChats = (
-  config: Omit<UseQueryOptions<Chats[], Error>, "queryKey" | "queryFn"> = {},
+export const useGetChats = (
+  params: GetChatsParams = {},
+  config: Omit<
+    UseQueryOptions<ChatSession[], Error>,
+    "queryKey" | "queryFn"
+  > = {},
 ) => {
-  return useQuery<Chats[], Error>({
-    queryKey: ["chats"],
-    queryFn: getChats,
+  return useQuery<ChatSession[], Error>({
+    queryKey: [...chatsQueryKey, params],
+    queryFn: () => getChats(params),
     ...config,
   });
 };

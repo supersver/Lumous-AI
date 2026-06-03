@@ -1,46 +1,14 @@
 import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { axios } from "@/lib/axios";
-
-export interface SendMessageInput {
-  chatId: string;
-  content: string;
-  model: string;
-}
-
-export interface SendMessageResponseMessage {
-  id: string;
-  chatId: string;
-  role: "assistant";
-  content: string;
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
-  createdAt: string;
-}
-
-export interface SendMessageResponseUsage {
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
-  estimatedCost: string;
-  latencyMs: number;
-}
-
-export interface SendMessageResponse {
-  message: SendMessageResponseMessage;
-  usage: SendMessageResponseUsage;
-}
+import type { SendMessageInput, SendMessageResponse } from "../types";
 
 export const sendMessage = async (
   input: SendMessageInput,
 ): Promise<SendMessageResponse> => {
   const res = await axios.post<SendMessageResponse>(
     `/chats/${input.chatId}/messages`,
-    {
-      content: input.content,
-      model: input.model,
-    },
+    { content: input.content, model: input.model },
   );
   return res.data;
 };
