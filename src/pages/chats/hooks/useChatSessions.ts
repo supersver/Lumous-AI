@@ -156,6 +156,30 @@ export function useChatSessionsState() {
     return nextActiveSessionId;
   }, []);
 
+  const appendAssistantMessage = useCallback(
+    (sessionId: string, assistantMessage: ChatMessage) => {
+      const now = new Date().toISOString();
+
+      setState((currentState) => {
+        const updatedSessions = currentState.sessions.map((session) => {
+          if (session.id !== sessionId) return session;
+
+          return {
+            ...session,
+            updatedAt: now,
+            messages: [...session.messages, assistantMessage],
+          };
+        });
+
+        return {
+          ...currentState,
+          sessions: sortSessions(updatedSessions),
+        };
+      });
+    },
+    [],
+  );
+
   const sendMessage = useCallback(
     (content: string, model: ChatModelSnapshot | null) => {
       const trimmedContent = content.trim();
@@ -212,6 +236,7 @@ export function useChatSessionsState() {
   return {
     activeSession,
     activeSessionId: state.activeSessionId,
+    appendAssistantMessage,
     createSession,
     deleteSession,
     selectSession,

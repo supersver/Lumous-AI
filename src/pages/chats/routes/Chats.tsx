@@ -10,6 +10,7 @@ import { useShallow } from "zustand/shallow";
 
 import { useAppStore } from "@/store/useAppStore";
 import { useGetModels } from "../api/getModels";
+import { useSendMessage } from "../api/sendMessage";
 import { MessagesArea } from "../components/MessagesArea";
 import { ModelSelector } from "../components/ModelSelector";
 import { PromptInput } from "../components/PromptInput";
@@ -33,11 +34,13 @@ export function Chats() {
   const {
     activeSession,
     activeSessionId,
+    appendAssistantMessage,
     createSession,
     selectSession,
-    sendMessage,
+    sendMessage: addUserMessage,
     sessions,
   } = useChatSessions();
+  const sendMessageMutation = useSendMessage();
 
   useEffect(() => {
     if (!chatId) return;
@@ -75,19 +78,46 @@ export function Chats() {
     }
   }, [models, selectedModel?.id, setSelectedModel]);
 
+  const isSending = sendMessageMutation.isPending;
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeSession?.id, activeSession?.messages.length]);
+  }, [activeSession?.id, activeSession?.messages.length, isSending]);
 
   const userInitial =
     user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "M";
-  const canSend = draft.trim().length > 0 && Boolean(selectedModel);
+  const canSend =
+    draft.trim().length > 0 &&
+    Boolean(selectedModel) &&
+    Boolean(chatId) &&
+    !isSending;
 
   const handleSendPrompt = () => {
-    if (!canSend) return;
+    if (!canSend || !chatId || !selectedModel) return;
 
-    sendMessage(draft, selectedModel);
+    const content = draft.trim();
+    addUserMessage(content, selectedModel);
     setDraft("");
+
+    sendMessageMutation.mutate(
+      {
+        chatId,
+        content,
+        model: selectedModel.id,
+      },
+      {
+        onSuccess: (data) => {
+          appendAssistantMessage(chatId, {
+            id: data.message.id,
+            role: data.message.role,
+            content: data.message.content,
+            createdAt: data.message.createdAt,
+            modelId: selectedModel.id,
+            modelName: selectedModel.name,
+          });
+        },
+      },
+    );
   };
 
   return (
@@ -115,7 +145,11 @@ export function Chats() {
           justifyContent: { xl: "space-between" },
         }}
       >
-        <Stack direction="row" spacing={1.5} sx={{ minWidth: 0, alignItems: "flex-start" }}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{ minWidth: 0, alignItems: "flex-start" }}
+        >
           <Avatar
             variant="rounded"
             sx={{
@@ -185,6 +219,7 @@ export function Chats() {
 
       <MessagesArea
         bottomRef={messagesEndRef}
+        isAwaitingResponse={isSending}
         session={activeSession}
         userInitial={userInitial}
       />
@@ -192,6 +227,7 @@ export function Chats() {
       <PromptInput
         canSend={canSend}
         draft={draft}
+        isSending={isSending}
         selectedModelName={selectedModel?.name}
         onDraftChange={setDraft}
         onSend={handleSendPrompt}

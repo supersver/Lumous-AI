@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -10,12 +11,14 @@ import { MessageBubble } from "./MessageBubble";
 
 interface MessagesAreaProps {
   bottomRef: RefObject<HTMLDivElement | null>;
+  isAwaitingResponse?: boolean;
   session: ChatSession | undefined;
   userInitial: string;
 }
 
 export function MessagesArea({
   bottomRef,
+  isAwaitingResponse = false,
   session,
   userInitial,
 }: MessagesAreaProps) {
@@ -83,6 +86,28 @@ export function MessagesArea({
             userInitial={userInitial}
           />
         ))}
+        {isAwaitingResponse ? (
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+            <Paper
+              elevation={0}
+              sx={{
+                display: "grid",
+                placeItems: "center",
+                width: 36,
+                height: 36,
+                border: 1,
+                borderColor: "divider",
+                bgcolor: "secondary.dark",
+                color: "secondary.light",
+              }}
+            >
+              <CircularProgress size={16} color="inherit" />
+            </Paper>
+            <Typography variant="body2" color="text.secondary">
+              Waiting for response...
+            </Typography>
+          </Stack>
+        ) : null}
         <Box ref={bottomRef} />
       </Stack>
     </Box>

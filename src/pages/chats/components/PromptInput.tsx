@@ -7,6 +7,7 @@ import type { KeyboardEvent } from "react";
 interface PromptInputProps {
   canSend: boolean;
   draft: string;
+  isSending?: boolean;
   selectedModelName?: string;
   onDraftChange: (draft: string) => void;
   onSend: () => void;
@@ -15,6 +16,7 @@ interface PromptInputProps {
 export function PromptInput({
   canSend,
   draft,
+  isSending = false,
   selectedModelName,
   onDraftChange,
   onSend,
@@ -58,6 +60,7 @@ export function PromptInput({
           minRows={1}
           maxRows={6}
           size="small"
+          disabled={isSending}
           value={draft}
           onChange={(event) => onDraftChange(event.target.value)}
           onKeyDown={handleKeyDown}
