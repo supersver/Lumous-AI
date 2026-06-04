@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { chatsQueryKey, useGetChats } from "../api/getChats";
 import { useGetChat } from "../api/getChat";
 import { useCreateNewChat } from "../api/createNewChat";
@@ -10,12 +10,24 @@ import type { ChatModelSnapshot } from "../types";
 export function useChatSessionsState() {
   const queryClient = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<string>("");
+  const deletingSessionIdsRef = useRef(new Set<string>());
 
   const { data: chatsData, isLoading } = useGetChats();
   const sessions = useMemo(() => chatsData ?? [], [chatsData]);
 
   useEffect(() => {
-    if (!activeSessionId && sessions?.length > 0) {
+    if (sessions.length === 0) {
+      if (activeSessionId) {
+        setActiveSessionId("");
+      }
+      return;
+    }
+
+    const activeSessionExists = sessions.some(
+      (session) => session.id === activeSessionId,
+    );
+
+    if (!activeSessionId || !activeSessionExists) {
       setActiveSessionId(sessions[0].id);
     }
   }, [sessions, activeSessionId]);
@@ -43,28 +55,28 @@ export function useChatSessionsState() {
   }, []);
 
   const deleteSession = useCallback(
-    async (sessionId: string, fallbackModelId: string): Promise<string> => {
-      await deleteChatMutation.mutateAsync(sessionId);
-
-      const remainingSessions = sessions.filter((s) => s.id !== sessionId);
-
-      if (remainingSessions.length === 0) {
-        // Pass the payload here!
-        const newChat = await createChatMutation.mutateAsync({
-          model: fallbackModelId,
-        });
-        return newChat.id;
+    async (sessionId: string): Promise<string | null> => {
+      if (deletingSessionIdsRef.current.has(sessionId)) {
+        return activeSessionId === sessionId ? null : activeSessionId;
       }
 
+      deletingSessionIdsRef.current.add(sessionId);
+
+      const remainingSessions = sessions.filter((s) => s.id !== sessionId);
       const nextId =
         activeSessionId === sessionId
-          ? remainingSessions[0].id
+          ? (remainingSessions[0]?.id ?? "")
           : activeSessionId;
 
-      setActiveSessionId(nextId);
-      return nextId;
+      try {
+        await deleteChatMutation.mutateAsync(sessionId);
+        setActiveSessionId(nextId);
+        return nextId || null;
+      } finally {
+        deletingSessionIdsRef.current.delete(sessionId);
+      }
     },
-    [deleteChatMutation, createChatMutation, sessions, activeSessionId],
+    [deleteChatMutation, sessions, activeSessionId],
   );
 
   const sendMessage = useCallback(

@@ -1,5 +1,4 @@
 import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
-import { toast } from "react-toastify";
 import { axios } from "@/lib/axios";
 import type { SendMessageInput, SendMessageResponse } from "../types";
 
@@ -19,8 +18,8 @@ export const useSendMessage = (
   return useMutation<SendMessageResponse, Error, SendMessageInput>({
     mutationFn: sendMessage,
     ...config,
-    onError: (error) => {
-      toast.error(error?.message || "Failed to send message.");
-    },
+    // onError: (error) => {
+    //   toast.error(error?.message || "Failed to send message.");
+    // },
   });
 };

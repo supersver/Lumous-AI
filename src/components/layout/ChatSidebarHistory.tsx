@@ -7,9 +7,10 @@ import {
   ListItemText,
 } from "@mui/material";
 import { PlusIcon, TrashIcon } from "@phosphor-icons/react";
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { NavLink, useLocation, useNavigate, useParams } from "react-router-dom";
 
+import { Modal } from "@/components/elements/Modal";
 import { useChatSessions } from "@/pages/chats/context/ChatSessionsContext";
 import { formatDate } from "@/utils/date";
 import { useAppStore } from "@/store/useAppStore";
@@ -19,11 +20,14 @@ export function ChatSidebarHistory() {
   const location = useLocation();
   const { id: activeRouteId } = useParams();
   const { createSession, deleteSession, sessions } = useChatSessions();
+  const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState<
+    string | null
+  >(null);
 
   const { selectedModel } = useAppStore();
 
-  const handleNewChat = () => {
-    const sessionId = createSession(selectedModel?.id ?? "");
+  const handleNewChat = async () => {
+    const sessionId = await createSession(selectedModel?.id ?? "");
     navigate(`/chat/${sessionId}`);
   };
 
@@ -34,10 +38,22 @@ export function ChatSidebarHistory() {
     event.preventDefault();
     event.stopPropagation();
 
-    const nextSessionId = deleteSession(sessionId, selectedModel?.id ?? "");
+    setPendingDeleteSessionId(sessionId);
+  };
+
+  const handleConfirmDeleteChat = async () => {
+    if (!pendingDeleteSessionId) {
+      return;
+    }
+
+    const sessionId = pendingDeleteSessionId;
+    setPendingDeleteSessionId(null);
+    const nextSessionId = await deleteSession(sessionId);
 
     if (activeRouteId === sessionId) {
-      navigate(`/chat/${nextSessionId}`, { replace: true });
+      navigate(nextSessionId ? `/chat/${nextSessionId}` : "/", {
+        replace: true,
+      });
     }
   };
 
@@ -140,6 +156,16 @@ export function ChatSidebarHistory() {
           );
         })}
       </List>
+
+      <Modal
+        isOpen={Boolean(pendingDeleteSessionId)}
+        onClose={() => setPendingDeleteSessionId(null)}
+        onConfirm={handleConfirmDeleteChat}
+        title="Delete Chat"
+        description="This will permanently delete this conversation."
+        confirmLabel="Delete"
+        variant="danger"
+      />
     </Box>
   );
 }

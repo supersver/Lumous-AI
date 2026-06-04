@@ -4,6 +4,7 @@ import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
 
+import { Modal } from "@/components/elements/Modal";
 import { useApiKeys } from "../api/getApiKeys";
 import { useDeleteKey } from "../api/deleteApiKey";
 import { useSaveKey } from "../api/saveApiKey";
@@ -25,6 +26,9 @@ const providerLabels: Record<string, string> = providerOptions.reduce(
 export function Settings() {
   const [apiKey, setApiKey] = useState<string>("");
   const [provider, setProvider] = useState<ApiKeyProvider>("openrouter");
+  const [pendingDeleteKeyId, setPendingDeleteKeyId] = useState<string | null>(
+    null,
+  );
   const [deletingKeyId, setDeletingKeyId] = useState<string | null>(null);
 
   const apiKeysQuery = useApiKeys();
@@ -49,6 +53,16 @@ export function Settings() {
   };
 
   const handleDeleteKey = (id: string) => {
+    setPendingDeleteKeyId(id);
+  };
+
+  const handleConfirmDeleteKey = () => {
+    if (!pendingDeleteKeyId) {
+      return;
+    }
+
+    const id = pendingDeleteKeyId;
+    setPendingDeleteKeyId(null);
     setDeletingKeyId(id);
     deleteKeyMutation.mutate(id, {
       onSettled: () => {
@@ -117,6 +131,16 @@ export function Settings() {
           />
         </Box>
       </Container>
+
+      <Modal
+        isOpen={Boolean(pendingDeleteKeyId)}
+        onClose={() => setPendingDeleteKeyId(null)}
+        onConfirm={handleConfirmDeleteKey}
+        title="Delete API Key"
+        description="This action cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+      />
     </Box>
   );
 }

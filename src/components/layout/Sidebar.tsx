@@ -8,6 +8,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import { signOut } from "firebase/auth";
+import { useState } from "react";
 import {
   GearSixIcon,
   SignOutIcon,
@@ -17,6 +18,7 @@ import {
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { auth } from "@/lib/firebase";
+import { Modal } from "@/components/elements/Modal";
 import { useAppStore } from "@/store/useAppStore";
 import { ChatSidebarHistory } from "./ChatSidebarHistory";
 
@@ -31,11 +33,13 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const user = useAppStore((s) => s.user);
   const clearUser = useAppStore((s) => s.clearUser);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const userInitial =
     user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?";
 
-  const handleLogout = async () => {
+  const handleConfirmLogout = async () => {
+    setIsLogoutModalOpen(false);
     await signOut(auth);
     clearUser();
     navigate("/login");
@@ -122,7 +126,7 @@ export default function Sidebar() {
           </Box>
         </Box>
         <ListItemButton
-          onClick={handleLogout}
+          onClick={() => setIsLogoutModalOpen(true)}
           sx={{
             color: "text.secondary",
             "&:hover": { color: "error.light", bgcolor: "error.dark", opacity: 0.12 },
@@ -137,6 +141,15 @@ export default function Sidebar() {
           />
         </ListItemButton>
       </Box>
+
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleConfirmLogout}
+        title="Sign out"
+        description="Are you sure you want to sign out?"
+        confirmLabel="Sign out"
+      />
     </Drawer>
   );
 }

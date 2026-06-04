@@ -1,4 +1,5 @@
 export const API_URL = import.meta.env.VITE_API_URL as string;
+export const ENVIRONMENT = import.meta.env.VITE_ENVIRONMENT as string;
 export const FIREBASE_API_KEY = import.meta.env.VITE_FIREBASE_API_KEY as string;
 export const FIREBASE_AUTH_DOMAIN = import.meta.env
   .VITE_FIREBASE_AUTH_DOMAIN as string;

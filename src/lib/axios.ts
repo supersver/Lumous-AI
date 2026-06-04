@@ -1,9 +1,10 @@
 import Axios, { type InternalAxiosRequestConfig, AxiosHeaders } from "axios";
 
-import { API_URL } from "@/config";
+import { API_URL, ENVIRONMENT } from "@/config";
 import { useAppStore } from "@/store/useAppStore";
 import storage from "../utils/storage";
 import { auth } from "./firebase";
+import { toast } from "react-toastify";
 
 async function authRequestInterceptor(config: InternalAxiosRequestConfig<any>) {
   if (!config.headers) {
@@ -13,7 +14,7 @@ async function authRequestInterceptor(config: InternalAxiosRequestConfig<any>) {
   const user = auth.currentUser;
 
   if (user) {
-    const token = await user.getIdToken();
+    const token = await user.getIdToken(true);
     config.headers.authorization = `Bearer ${token}`;
   }
 
@@ -52,12 +53,16 @@ axios.interceptors.response.use(
       clearSession();
       window.location.assign("/login");
     } else {
-      console.log("API Error:", {
-        url: error?.config?.url,
-        method: error?.config?.method,
-        status,
-        response: error?.response,
-      });
+      toast.error(error?.response.data.error.message);
+      {
+        ENVIRONMENT &&
+          console.log("API Error:", {
+            url: error?.config?.url,
+            method: error?.config?.method,
+            status,
+            response: error?.response,
+          });
+      }
       return Promise.reject(error);
     }
 
