@@ -12,7 +12,15 @@ export interface ChatMessage {
   createdAt: string;
   modelId?: string;
   modelName?: string;
+  status?: ChatMessageStatus;
+  error?: string;
 }
+
+export type ChatMessageStatus =
+  | "optimistic"
+  | "streaming"
+  | "complete"
+  | "error";
 
 export interface ChatSession {
   id: string;
@@ -53,4 +61,36 @@ export interface SendMessageResponseUsage {
 export interface SendMessageResponse {
   message: SendMessageResponseMessage;
   usage: SendMessageResponseUsage;
+}
+
+export interface StreamMessageInput {
+  chatId: string;
+  content: string;
+  model: string;
+}
+
+export type ChatStreamEventType = "start" | "token" | "complete" | "error";
+
+export interface ChatStreamStartPayload {
+  id?: string;
+  messageId?: string;
+  assistantMessageId?: string;
+}
+
+export interface ChatStreamTokenPayload {
+  token?: string;
+  delta?: string;
+  content?: string;
+}
+
+export interface ChatStreamCompletePayload {
+  id?: string;
+  messageId?: string;
+  content?: string;
+  message?: Partial<ChatMessage>;
+}
+
+export interface ChatStreamErrorPayload {
+  message?: string;
+  error?: string;
 }

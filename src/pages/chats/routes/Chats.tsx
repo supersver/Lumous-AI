@@ -16,10 +16,10 @@ import { MessagesArea } from "../components/MessagesArea";
 import { ModelSelector } from "../components/ModelSelector";
 import { PromptInput } from "../components/PromptInput";
 import { useChatSessions } from "../context/ChatSessionsContext";
+import { useChatStream } from "../hooks/useChatStream";
 
 export function Chats() {
   const { id: chatId } = useParams<{ id: string }>();
-  // const navigate = useNavigate();
   const [draft, setDraft] = useState<string>("");
   const { user, selectedModel, setSelectedModel } = useAppStore(
     useShallow((state) => ({
@@ -32,37 +32,14 @@ export function Chats() {
 
   const modelsQuery = useGetModels();
   const models = modelsQuery.data ?? [];
-  const {
-    activeSession,
-    // activeSessionId,
-    // createSession,
-    // selectSession,
-    sendMessage: addUserMessage,
-    // sessions,
-    isSending,
-  } = useChatSessions();
+  const { activeSession, activeSessionId, selectSession } = useChatSessions();
+  const { sendMessage: streamMessage, isStreaming } = useChatStream();
 
-  // useEffect(() => {
-  //   if (!chatId) return;
-
-  //   const sessionExists = sessions.some((session) => session.id === chatId);
-
-  //   if (!sessionExists) {
-  //     const fallbackId = sessions[0]?.id ?? createSession();
-  //     navigate(`/chat/${fallbackId}`, { replace: true });
-  //     return;
-  //   }
-
-  //   if (activeSessionId !== chatId) {
-  //     selectSession(chatId);
-  //   }
-  // }, [
-  //   activeSessionId,
-  //   chatId,
-  //   createSession,
-  //   selectSession,
-  //   sessions,
-  // ]);
+  useEffect(() => {
+    if (chatId && activeSessionId !== chatId) {
+      selectSession(chatId);
+    }
+  }, [activeSessionId, chatId, selectSession]);
 
   useEffect(() => {
     if (models.length === 0) return;
@@ -77,21 +54,32 @@ export function Chats() {
     }
   }, [models, selectedModel?.id, setSelectedModel]);
 
+  const lastMessage = activeSession?.messages.at(-1);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeSession?.id, activeSession?.messages.length]);
+  }, [
+    activeSession?.id,
+    activeSession?.messages.length,
+    isStreaming,
+    lastMessage?.content,
+    lastMessage?.status,
+  ]);
 
   const userInitial =
     user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "M";
   const canSend =
-    draft.trim().length > 0 && Boolean(selectedModel) && Boolean(chatId);
+    draft.trim().length > 0 &&
+    Boolean(selectedModel) &&
+    Boolean(chatId) &&
+    !isStreaming;
 
   const handleSendPrompt = () => {
     if (!canSend || !chatId || !selectedModel) return;
 
     const content = draft.trim();
-    addUserMessage(content, selectedModel);
     setDraft("");
+    void streamMessage({ chatId, content, model: selectedModel.id });
   };
 
   return (
@@ -193,7 +181,7 @@ export function Chats() {
 
       <MessagesArea
         bottomRef={messagesEndRef}
-        isAwaitingResponse={isSending}
+        isAwaitingResponse={isStreaming}
         session={activeSession}
         userInitial={userInitial}
       />
@@ -201,7 +189,7 @@ export function Chats() {
       <PromptInput
         canSend={canSend}
         draft={draft}
-        isSending={isSending}
+        isSending={isStreaming}
         selectedModelName={selectedModel?.name}
         onDraftChange={setDraft}
         onSend={handleSendPrompt}

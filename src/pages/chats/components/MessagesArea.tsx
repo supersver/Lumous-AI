@@ -22,6 +22,10 @@ export function MessagesArea({
   session,
   userInitial,
 }: MessagesAreaProps) {
+  const hasStreamingMessage =
+    session?.messages.some((message) => message.status === "streaming") ??
+    false;
+
   if (!session || session.messages.length === 0) {
     return (
       <Box
@@ -86,7 +90,7 @@ export function MessagesArea({
             userInitial={userInitial}
           />
         ))}
-        {isAwaitingResponse ? (
+        {isAwaitingResponse && !hasStreamingMessage ? (
           <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
             <Paper
               elevation={0}
@@ -104,7 +108,7 @@ export function MessagesArea({
               <CircularProgress size={16} color="inherit" />
             </Paper>
             <Typography variant="body2" color="text.secondary">
-              Waiting for response...
+              Streaming response...
             </Typography>
           </Stack>
         ) : null}

@@ -5,6 +5,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { RobotIcon } from "@phosphor-icons/react";
+import Markdown from "react-markdown";
 
 import { formatTime } from "@/utils/time";
 import type { ChatMessage } from "../types";
@@ -16,6 +17,8 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const isStreaming = message.status === "streaming";
+  const isError = message.status === "error";
 
   return (
     <Stack
@@ -44,7 +47,13 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
         )}
       </Avatar>
 
-      <Box sx={{ minWidth: 0, maxWidth: 768, textAlign: isUser ? "right" : "left" }}>
+      <Box
+        sx={{
+          minWidth: 0,
+          maxWidth: 768,
+          textAlign: isUser ? "right" : "left",
+        }}
+      >
         <Stack
           direction="row"
           spacing={1}
@@ -72,7 +81,11 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
             py: 1.5,
             textAlign: "left",
             border: 1,
-            borderColor: isUser ? "primary.dark" : "divider",
+            borderColor: isError
+              ? "error.main"
+              : isUser
+                ? "primary.dark"
+                : "divider",
             bgcolor: isUser ? "primary.dark" : "background.paper",
             color: "text.primary",
           }}
@@ -81,9 +94,38 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
             variant="body2"
             sx={{ whiteSpace: "pre-wrap", lineHeight: 1.7 }}
           >
-            {message.content}
+            <Markdown>{message.content}</Markdown>
+            {isStreaming ? (
+              <Box
+                component="span"
+                aria-label="Assistant is typing"
+                sx={{
+                  display: "inline-block",
+                  width: 7,
+                  height: 16,
+                  ml: message.content ? 0.5 : 0,
+                  mb: -0.25,
+                  borderRadius: 0.5,
+                  bgcolor: "secondary.light",
+                  animation: "streamingCursorBlink 1s steps(2, start) infinite",
+                  "@keyframes streamingCursorBlink": {
+                    "0%, 45%": { opacity: 1 },
+                    "46%, 100%": { opacity: 0 },
+                  },
+                }}
+              />
+            ) : null}
           </Typography>
         </Paper>
+        {isError && message.error ? (
+          <Typography
+            variant="caption"
+            color="error.light"
+            sx={{ display: "block", mt: 0.75 }}
+          >
+            {message.error}
+          </Typography>
+        ) : null}
       </Box>
     </Stack>
   );

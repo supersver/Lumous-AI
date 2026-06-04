@@ -5,7 +5,8 @@ import { useGetChat } from "../api/getChat";
 import { useCreateNewChat } from "../api/createNewChat";
 import { useDeleteChat } from "../api/deleteChat";
 import { useSendMessage } from "../api/sendMessage";
-import type { ChatModelSnapshot } from "../types";
+import { useChatMessagesStore } from "../store/useChatMessagesStore";
+import type { ChatMessage, ChatModelSnapshot } from "../types";
 
 export function useChatSessionsState() {
   const queryClient = useQueryClient();
@@ -35,6 +36,43 @@ export function useChatSessionsState() {
   const { data: activeSession } = useGetChat(activeSessionId, {
     enabled: !!activeSessionId,
   });
+  const activeMessageMap = useChatMessagesStore((state) =>
+    activeSessionId ? state.messagesByChatId[activeSessionId] : undefined,
+  );
+  const activeMessageOrder = useChatMessagesStore((state) =>
+    activeSessionId ? state.messageOrderByChatId[activeSessionId] : undefined,
+  );
+  const clearChatMessages = useChatMessagesStore(
+    (state) => state.clearChatMessages,
+  );
+  const setChatMessagesFromServer = useChatMessagesStore(
+    (state) => state.setChatMessagesFromServer,
+  );
+
+  useEffect(() => {
+    if (!activeSession) {
+      return;
+    }
+
+    setChatMessagesFromServer(activeSession.id, activeSession.messages);
+  }, [activeSession, setChatMessagesFromServer]);
+
+  const mergedActiveSession = useMemo(() => {
+    if (!activeSession) {
+      return undefined;
+    }
+
+    if (!activeMessageMap || !activeMessageOrder) {
+      return activeSession;
+    }
+
+    return {
+      ...activeSession,
+      messages: activeMessageOrder
+        .map((messageId) => activeMessageMap[messageId])
+        .filter((message): message is ChatMessage => Boolean(message)),
+    };
+  }, [activeMessageMap, activeMessageOrder, activeSession]);
 
   const createChatMutation = useCreateNewChat();
   const deleteChatMutation = useDeleteChat();
@@ -45,9 +83,11 @@ export function useChatSessionsState() {
     async (modelId: string): Promise<string> => {
       const newChat = await createChatMutation.mutateAsync({ model: modelId });
       setActiveSessionId(newChat.id);
+      await queryClient.invalidateQueries({ queryKey: chatsQueryKey });
+
       return newChat.id;
     },
-    [createChatMutation],
+    [createChatMutation, queryClient],
   );
 
   const selectSession = useCallback((sessionId: string) => {
@@ -70,13 +110,14 @@ export function useChatSessionsState() {
 
       try {
         await deleteChatMutation.mutateAsync(sessionId);
+        clearChatMessages(sessionId);
         setActiveSessionId(nextId);
         return nextId || null;
       } finally {
         deletingSessionIdsRef.current.delete(sessionId);
       }
     },
-    [deleteChatMutation, sessions, activeSessionId],
+    [clearChatMessages, deleteChatMutation, sessions, activeSessionId],
   );
 
   const sendMessage = useCallback(
@@ -105,7 +146,7 @@ export function useChatSessionsState() {
   );
 
   return {
-    activeSession,
+    activeSession: mergedActiveSession,
     activeSessionId,
     createSession,
     deleteSession,

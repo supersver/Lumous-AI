@@ -24,7 +24,9 @@ export function PromptInput({
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      onSend();
+      if (canSend) {
+        onSend();
+      }
     }
   };
 
