@@ -150,32 +150,17 @@ export function Chats() {
             justifyContent: { xl: "flex-end" },
           }}
         >
-          <ModelSelector
-            isError={modelsQuery.isError}
-            isLoading={modelsQuery.isLoading}
-            models={models}
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-          />
           {modelsQuery.isLoading ? (
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{
-                height: 40,
-                alignItems: "center",
-                px: 1.5,
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 1,
-              }}
-            >
-              <CircularProgress size={16} />
-              <Typography variant="body2" color="text.secondary">
-                Loading
-              </Typography>
-            </Stack>
-          ) : null}
+            <CircularProgress size={16} />
+          ) : (
+            <ModelSelector
+              isError={modelsQuery.isError}
+              isLoading={modelsQuery.isLoading}
+              models={models}
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+            />
+          )}
         </Stack>
       </Box>
 

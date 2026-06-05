@@ -6,6 +6,8 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import { signOut } from "firebase/auth";
 import { useState } from "react";
@@ -14,6 +16,7 @@ import {
   SignOutIcon,
   RobotIcon,
   ChartBarIcon,
+  CaretUpDownIcon,
 } from "@phosphor-icons/react";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -33,6 +36,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const user = useAppStore((s) => s.user);
   const clearUser = useAppStore((s) => s.clearUser);
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const userInitial =
@@ -61,9 +65,15 @@ export default function Sidebar() {
         },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, px: 1, pb: 2 }}>
+      <Box
+        sx={{ display: "flex", alignItems: "center", gap: 1.25, px: 1, pb: 2 }}
+      >
         <RobotIcon size={24} color="#818cf8" weight="duotone" />
-        <Typography variant="subtitle1" color="text.primary" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="subtitle1"
+          color="text.primary"
+          sx={{ fontWeight: 600 }}
+        >
           ModelPilot
         </Typography>
       </Box>
@@ -80,10 +90,7 @@ export default function Sidebar() {
             to={to}
             sx={{
               mb: 0.5,
-              "&.active": {
-                bgcolor: "action.selected",
-                color: "text.primary",
-              },
+              "&.active": { bgcolor: "action.selected", color: "text.primary" },
             }}
           >
             <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>
@@ -97,9 +104,17 @@ export default function Sidebar() {
         ))}
       </List>
 
+      {/* User dropdown trigger */}
       <Box sx={{ mt: "auto" }}>
         <Divider sx={{ mb: 1.5 }} />
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, px: 1, py: 1 }}>
+        <ListItemButton
+          onClick={(e) => setMenuAnchor(e.currentTarget)}
+          sx={{
+            borderRadius: 2,
+            gap: 1,
+            "&:hover": { bgcolor: "action.hover" },
+          }}
+        >
           <Avatar
             sx={{
               width: 28,
@@ -107,40 +122,85 @@ export default function Sidebar() {
               fontSize: 12,
               bgcolor: "secondary.dark",
               color: "secondary.light",
+              flexShrink: 0,
             }}
           >
             {userInitial}
           </Avatar>
           <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography variant="caption" noWrap sx={{ fontWeight: 500, display: "block" }}>
-              {user?.name ?? "User"}
-            </Typography>
             <Typography
               variant="caption"
-              color="text.secondary"
               noWrap
-              sx={{ display: "block" }}
+              sx={{ fontWeight: 500, display: "block" }}
             >
-              {user?.email}
+              {user?.name ?? "User"}
             </Typography>
           </Box>
-        </Box>
-        <ListItemButton
-          onClick={() => setIsLogoutModalOpen(true)}
-          sx={{
-            color: "text.secondary",
-            "&:hover": { color: "error.light", bgcolor: "error.dark", opacity: 0.12 },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>
-            <SignOutIcon size={18} />
-          </ListItemIcon>
-          <ListItemText
-            primary="Sign out"
-            slotProps={{ primary: { variant: "body2" } }}
-          />
+          <CaretUpDownIcon size={14} style={{ flexShrink: 0, opacity: 0.4 }} />
         </ListItemButton>
       </Box>
+
+      {/* Dropdown menu */}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={() => setMenuAnchor(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: DRAWER_WIDTH - 24,
+              borderRadius: 2,
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+              mb: 0.5,
+            },
+          },
+        }}
+      >
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 600, display: "block" }}
+          >
+            {user?.name ?? "User"}
+          </Typography>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: "block" }}
+          >
+            {user?.email}
+          </Typography>
+        </Box>
+
+        <Divider />
+
+        <MenuItem
+          onClick={() => {
+            setMenuAnchor(null);
+            setIsLogoutModalOpen(true);
+          }}
+          sx={{
+            gap: 1.5,
+            mt: 1.5,
+            mx: 0.5,
+            mb: 0.5,
+            borderRadius: 1.5,
+            color: "error.light",
+            "&:hover": {
+              bgcolor: "error.dark",
+              opacity: 0.9,
+              color: "white",
+            },
+          }}
+        >
+          <SignOutIcon size={16} />
+          <Typography variant="body2">Sign out</Typography>
+        </MenuItem>
+      </Menu>
 
       <Modal
         isOpen={isLogoutModalOpen}

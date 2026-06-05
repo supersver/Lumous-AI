@@ -1,14 +1,10 @@
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import { Box, Typography, Avatar, Stack, Chip, Paper } from "@mui/material";
 import { RobotIcon } from "@phosphor-icons/react";
 import Markdown from "react-markdown";
 
 import { formatTime } from "@/utils/time";
 import type { ChatMessage } from "../types";
+import { MarkdownComponents } from "./MarkdownComponents";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -94,7 +90,9 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
             variant="body2"
             sx={{ whiteSpace: "pre-wrap", lineHeight: 1.7 }}
           >
-            <Markdown>{message.content}</Markdown>
+            <Markdown components={MarkdownComponents}>
+              {message.content}
+            </Markdown>
             {isStreaming ? (
               <Box
                 component="span"

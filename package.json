@@ -23,6 +23,7 @@
     "react-error-boundary": "^6.0.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.9.0",
+    "react-syntax-highlighter": "^16.1.1",
     "react-toastify": "^11.0.5",
     "zustand": "^5.0.8"
   },
@@ -32,6 +33,7 @@
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@typescript-eslint/eslint-plugin": "^8.42.0",
     "@typescript-eslint/parser": "^8.42.0",
     "@vitejs/plugin-react": "^5.0.2",
