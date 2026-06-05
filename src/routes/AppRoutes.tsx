@@ -1,20 +1,34 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, lazy, Suspense, type ReactNode } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { Route, Routes, Navigate } from "react-router-dom";
 
 import { auth } from "@/lib/firebase";
-import { login, Login } from "@/pages/auth";
-import { Chats, ChatIndexRedirect } from "@/pages/chats";
+import { login } from "@/pages/auth";
 import { useAppStore } from "@/store/useAppStore";
-import Box from "@mui/material/Box";
-import CircularProgress from "@mui/material/CircularProgress";
-import { MainLayout } from "@/components/layout";
-import { Settings } from "@/pages/settings";
+import { CircularProgress, Box } from "@mui/material";
 
-function AuthLoading() {
+const Login = lazy(() =>
+  import("@/pages/auth").then((m) => ({ default: m.Login })),
+);
+const Chats = lazy(() =>
+  import("@/pages/chats").then((m) => ({ default: m.Chats })),
+);
+const ChatIndexRedirect = lazy(() =>
+  import("@/pages/chats").then((m) => ({ default: m.ChatIndexRedirect })),
+);
+const Settings = lazy(() =>
+  import("@/pages/settings").then((m) => ({ default: m.Settings })),
+);
+const Analytics = lazy(() =>
+  import("@/pages/analytics").then((m) => ({ default: m.Analytics })),
+);
+const MainLayout = lazy(() =>
+  import("@/components/layout").then((m) => ({ default: m.MainLayout })),
+);
+
+function PageLoader() {
   return (
     <Box
-      component="main"
       sx={{
         display: "flex",
         minHeight: "100vh",
@@ -50,13 +64,9 @@ function AuthGate({ children }: { children: ReactNode }) {
 
       try {
         const res = await login();
-
-        if (res.user) {
-          setUser(res.user);
-        }
+        if (res.user) setUser(res.user);
       } catch {
         const latestUser = useAppStore.getState().user;
-
         if (!latestUser || latestUser.firebaseUid !== firebaseUser.uid) {
           clearUser();
         }
@@ -68,7 +78,7 @@ function AuthGate({ children }: { children: ReactNode }) {
     return unsubscribe;
   }, [clearUser, setAuthReady, setUser]);
 
-  return authReady ? children : <AuthLoading />;
+  return authReady ? children : <PageLoader />;
 }
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -84,32 +94,33 @@ function PublicRoute({ children }: { children: ReactNode }) {
 export function AppRoutes() {
   return (
     <AuthGate>
-      <Routes>
-        {/* Public routes */}
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          }
-        />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
 
-        {/* Protected routes */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/" element={<ChatIndexRedirect />} />
-          <Route path="/chat/:id" element={<Chats />} />
-          <Route path="/settings" element={<Settings />} />
-        </Route>
+          <Route
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/" element={<ChatIndexRedirect />} />
+            <Route path="/chat/:id" element={<Chats />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/analytics" element={<Analytics />} />
+          </Route>
 
-        <Route path="*" element={<Navigate replace to="/" />} />
-      </Routes>
+          <Route path="*" element={<Navigate replace to="/" />} />
+        </Routes>
+      </Suspense>
     </AuthGate>
   );
 }
