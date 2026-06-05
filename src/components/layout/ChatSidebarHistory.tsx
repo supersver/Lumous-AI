@@ -116,7 +116,7 @@ export function ChatSidebarHistory() {
               >
                 <ListItemText
                   primary={session.title}
-                  secondary={`${session?.messages?.length} messages · ${formatDate(session.updatedAt)}`}
+                  secondary={`${formatDate(session.updatedAt)}`}
                   slotProps={{
                     primary: {
                       noWrap: true,
