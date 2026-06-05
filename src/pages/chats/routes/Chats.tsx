@@ -31,7 +31,11 @@ export function Chats() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const modelsQuery = useGetModels();
-  const models = modelsQuery.data ?? [];
+
+  // Extract models and filters from the updated API response shape
+  const models = modelsQuery.data?.models ?? [];
+  const filters = modelsQuery.data?.filters;
+
   const { activeSession, activeSessionId, selectSession } = useChatSessions();
   const { sendMessage: streamMessage, isStreaming } = useChatStream();
 
@@ -39,7 +43,7 @@ export function Chats() {
     if (chatId && activeSessionId !== chatId) {
       selectSession(chatId);
     }
-  }, [activeSessionId, chatId, selectSession]);
+  }, [chatId, selectSession]);
 
   useEffect(() => {
     if (models.length === 0) return;
@@ -126,12 +130,6 @@ export function Chats() {
             <UserCircleIcon size={22} weight="duotone" />
           </Avatar>
           <Box sx={{ minWidth: 0 }}>
-            <Typography
-              variant="overline"
-              sx={{ color: "primary.main", lineHeight: 1.5 }}
-            >
-              ModelPilot
-            </Typography>
             <Typography variant="h5" noWrap sx={{ fontWeight: 600 }}>
               {activeSession?.title ?? "New chat"}
             </Typography>
@@ -157,6 +155,7 @@ export function Chats() {
               isError={modelsQuery.isError}
               isLoading={modelsQuery.isLoading}
               models={models}
+              filters={filters} // Pass the newly extracted filters
               selectedModel={selectedModel}
               onModelChange={setSelectedModel}
             />

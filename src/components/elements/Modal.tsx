@@ -138,6 +138,7 @@ export function Modal({
       <DialogContent sx={{ px: 3, pt: 1.5, pb: 0 }}>
         <DialogContentText
           id="modal-description"
+          component="div"
           sx={{
             fontSize: "0.875rem",
             color: "rgba(255, 255, 255, 0.6)",

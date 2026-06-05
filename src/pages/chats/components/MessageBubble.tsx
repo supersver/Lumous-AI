@@ -87,6 +87,7 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
           }}
         >
           <Typography
+            component="div"
             variant="body2"
             sx={{ whiteSpace: "pre-wrap", lineHeight: 1.7 }}
           >
