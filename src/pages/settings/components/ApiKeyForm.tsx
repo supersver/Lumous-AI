@@ -1,12 +1,23 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import { FloppyDiskIcon, KeyIcon } from "@phosphor-icons/react";
-import type { FormEvent } from "react";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  Paper,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  FloppyDiskIcon,
+  KeyIcon,
+  ShieldCheckIcon,
+} from "@phosphor-icons/react";
+import { type FormEvent, useState, useCallback } from "react";
 
 import type { ApiKeyProvider } from "../api/types";
 import { ProviderSelect, type ProviderOption } from "./ProviderSelect";
@@ -21,6 +32,15 @@ interface ApiKeyFormProps {
   onSubmit: () => void;
 }
 
+// Basic sanity check — non-empty, min length, no whitespace
+const validateKey = (key: string): string | null => {
+  if (!key.trim()) return null;
+  if (key !== key.trim())
+    return "Key must not contain leading or trailing spaces.";
+  if (key.length < 20) return "Key seems too short.";
+  return null;
+};
+
 export function ApiKeyForm({
   apiKey,
   isSaving,
@@ -30,10 +50,40 @@ export function ApiKeyForm({
   onProviderChange,
   onSubmit,
 }: ApiKeyFormProps) {
+  const [visible, setVisible] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  const validationError = touched ? validateKey(apiKey) : null;
+  const isValid = apiKey.trim().length >= 20 && apiKey === apiKey.trim();
+  const canSubmit = !isSaving && isValid;
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit();
+    setTouched(true);
+    if (canSubmit) onSubmit();
   };
+
+  // Strip whitespace on paste — a common source of invalid keys
+  const handlePaste = useCallback(
+    (event: React.ClipboardEvent<HTMLInputElement>) => {
+      event.preventDefault();
+      const pasted = event.clipboardData.getData("text").trim();
+      onApiKeyChange(pasted);
+      setTouched(true);
+    },
+    [onApiKeyChange],
+  );
+
+  const handleChange = (value: string) => {
+    onApiKeyChange(value);
+    if (!touched) setTouched(true);
+  };
+
+  // Mask all but last 4 chars for the visible preview
+  const maskedPreview =
+    apiKey.length > 4
+      ? `${"•".repeat(Math.min(apiKey.length - 4, 24))}${apiKey.slice(-4)}`
+      : "";
 
   return (
     <Paper
@@ -46,6 +96,7 @@ export function ApiKeyForm({
         bgcolor: "background.paper",
       }}
     >
+      {/* Header */}
       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
         <Box
           sx={{
@@ -80,24 +131,96 @@ export function ApiKeyForm({
             onChange={onProviderChange}
           />
 
-          <TextField
-            fullWidth
-            size="small"
-            type="password"
-            label="API key"
-            value={apiKey}
-            disabled={isSaving}
-            onChange={(event) => onApiKeyChange(event.target.value)}
-            placeholder="sk-or-v1-..."
-            autoComplete="off"
-          />
+          <Box>
+            <TextField
+              fullWidth
+              size="small"
+              type={visible ? "text" : "password"}
+              label="API key"
+              value={apiKey}
+              disabled={isSaving}
+              error={Boolean(validationError)}
+              helperText={validationError ?? " "}
+              onChange={(e) => handleChange(e.target.value)}
+              onBlur={() => setTouched(true)}
+              onPaste={handlePaste}
+              placeholder="sk-or-v1-..."
+              autoComplete="new-api-key" // Prevents browser autofill
+              spellCheck={false}
+              slotProps={{
+                htmlInput: {
+                  "data-lpignore": "true",
+                  "data-1p-ignore": "true",
+                  "data-bwignore": "true",
+                },
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      {/* Validity indicator */}
+                      {apiKey && (
+                        <Tooltip
+                          title={
+                            isValid
+                              ? "Key format looks valid"
+                              : "Key format invalid"
+                          }
+                          placement="top"
+                        >
+                          <ShieldCheckIcon
+                            size={16}
+                            weight="duotone"
+                            color={isValid ? "#34d399" : "#f87171"}
+                            style={{ marginRight: 4 }}
+                          />
+                        </Tooltip>
+                      )}
+                      <Tooltip
+                        title={visible ? "Hide key" : "Reveal key"}
+                        placement="top"
+                      >
+                        <IconButton
+                          size="small"
+                          edge="end"
+                          onClick={() => setVisible((v) => !v)}
+                          tabIndex={-1}
+                          aria-label={visible ? "Hide API key" : "Show API key"}
+                        >
+                          {visible ? (
+                            <EyeSlashIcon size={16} />
+                          ) : (
+                            <EyeIcon size={16} />
+                          )}
+                        </IconButton>
+                      </Tooltip>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+
+            {/* Masked key preview — only visible when field is hidden */}
+            {!visible && maskedPreview && (
+              <Typography
+                variant="caption"
+                color="text.disabled"
+                sx={{
+                  mt: 0.5,
+                  ml: 0.25,
+                  display: "block",
+                  fontFamily: "monospace",
+                }}
+              >
+                {maskedPreview}
+              </Typography>
+            )}
+          </Box>
 
           <Button
             type="submit"
             variant="contained"
             color="primary"
             fullWidth
-            disabled={isSaving || !apiKey.trim()}
+            disabled={!canSubmit}
             startIcon={
               isSaving ? (
                 <CircularProgress size={18} color="inherit" />

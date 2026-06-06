@@ -1,4 +1,10 @@
-import { Box, CircularProgress, IconButton, InputBase } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  InputBase,
+  Typography,
+} from "@mui/material";
 import { PaperPlaneTiltIcon } from "@phosphor-icons/react";
 import { useEffect, type KeyboardEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -68,6 +74,9 @@ export function PromptInput({
         py: 2,
         display: "flex",
         justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        gap: "3px",
       }}
     >
       <Box
@@ -162,6 +171,12 @@ export function PromptInput({
           </IconButton>
         </Box>
       </Box>
+      <Typography
+        variant="caption"
+        sx={{ fontWeight: 600, fontSize: 14, color: "GrayText" }}
+      >
+        ModelPilot is AI and can make mistakes.
+      </Typography>
     </Box>
   );
 }
