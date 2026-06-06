@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="mpGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A" />
+      <stop offset="100%" stop-color="#14B8A6" />
+    </linearGradient>
+    <linearGradient id="mpNodeGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#2DD4BF" />
+    </linearGradient>
+  </defs>
+  
+  <path d="M256,48 C141.1,48 48,141.1 48,256 C48,296.5 59.6,334.3 79.5,366.5 L48,464 L145.5,432.5 C177.7,452.4 215.5,464 256,464 C370.9,464 464,370.9 464,256 C464,141.1 370.9,48 256,48 Z" 
+        fill="none" 
+        stroke="url(#mpGrad)" 
+        stroke-width="40" 
+        stroke-linejoin="round" />
+        
+  <circle cx="200" cy="200" r="32" fill="url(#mpNodeGrad)" />
+  <circle cx="312" cy="256" r="44" fill="url(#mpNodeGrad)" />
+  <circle cx="180" cy="320" r="24" fill="url(#mpNodeGrad)" />
+  
+  <path d="M200,200 L312,256 L180,320 Z" 
+        fill="none" 
+        stroke="url(#mpNodeGrad)" 
+        stroke-width="14" 
+        stroke-linejoin="round" />
+</svg>

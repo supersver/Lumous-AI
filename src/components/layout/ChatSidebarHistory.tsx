@@ -9,7 +9,11 @@ import {
   MenuItem,
   Tooltip,
 } from "@mui/material";
-import { PlusIcon, TrashIcon, Chats } from "@phosphor-icons/react";
+import {
+  TrashIcon,
+  NotePencilIcon,
+  ChatsCircleIcon,
+} from "@phosphor-icons/react";
 import { useState, type MouseEvent } from "react";
 import { NavLink, useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -91,7 +95,7 @@ export function ChatSidebarHistory({ collapsed }: ChatSidebarHistoryProps) {
           variant="outlined"
           fullWidth
           onClick={handleNewChat}
-          startIcon={!collapsed ? <PlusIcon size={18} /> : undefined}
+          startIcon={!collapsed ? <NotePencilIcon size={18} /> : undefined}
           sx={{
             minWidth: "unset",
             justifyContent: collapsed ? "center" : "flex-start",
@@ -101,7 +105,7 @@ export function ChatSidebarHistory({ collapsed }: ChatSidebarHistoryProps) {
             "&:hover": { borderColor: "primary.main", bgcolor: "action.hover" },
           }}
         >
-          {collapsed ? <PlusIcon size={18} /> : "New chat"}
+          {collapsed ? <NotePencilIcon size={18} /> : "New chat"}
         </Button>
       </Tooltip>
 
@@ -116,7 +120,7 @@ export function ChatSidebarHistory({ collapsed }: ChatSidebarHistoryProps) {
                 "&:hover": { color: "text.primary", bgcolor: "action.hover" },
               }}
             >
-              <Chats size={20} />
+              <ChatsCircleIcon size={20} />
             </IconButton>
           </Tooltip>
         </Box>

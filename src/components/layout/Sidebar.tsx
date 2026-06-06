@@ -18,11 +18,9 @@ import { useState } from "react";
 import {
   GearSixIcon,
   SignOutIcon,
-  RobotIcon,
   ChartBarIcon,
   CaretUpDownIcon,
   SidebarSimpleIcon,
-  CaretRightIcon,
 } from "@phosphor-icons/react";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -30,6 +28,8 @@ import { auth } from "@/lib/firebase";
 import { Modal } from "@/components/elements/Modal";
 import { useAppStore } from "@/store/useAppStore";
 import { ChatSidebarHistory } from "./ChatSidebarHistory";
+import logo from "@/assets/logo.svg";
+import fullLogo from "@/assets/full-logo.svg";
 
 const DRAWER_WIDTH = 256;
 const COLLAPSED_WIDTH = 64;
@@ -95,11 +95,24 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         }}
       >
         {!collapsed && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-            <RobotIcon size={22} color="#818cf8" weight="duotone" />
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              ModelPilot
-            </Typography>
+          <Box
+            sx={{
+              cursor: "pointer",
+              userSelect: "none",
+              transition: "transform 0.2s ease, opacity 0.2s ease",
+              "&:hover": {
+                opacity: 0.9,
+                transform: "scale(0.98)",
+              },
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <img
+              src={fullLogo}
+              alt="ModelPilot"
+              style={{ width: "auto", height: 40, display: "block" }}
+            />
           </Box>
         )}
 
@@ -123,8 +136,11 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   alignItems: "center",
                 }}
               >
-                <RobotIcon size={22} color="#818cf8" weight="duotone" />
-                <CaretRightIcon />
+                <img
+                  src={logo}
+                  alt="ModelPilot"
+                  style={{ width: 30, height: 30 }}
+                />
               </Box>
             ) : (
               <SidebarSimpleIcon size={18} />
