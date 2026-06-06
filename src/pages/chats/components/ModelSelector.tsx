@@ -8,7 +8,6 @@ import {
   ListItemText,
   Stack,
   Typography,
-  Alert,
 } from "@mui/material";
 import { CaretDown } from "@phosphor-icons/react";
 
@@ -70,12 +69,9 @@ export function ModelSelector({
     return models.filter((model) => {
       let matches = true;
 
-      // Filter by Provider (matching the chip's provider slug to the model's provider slug)
       if (activeProvider && model.providerSlug !== activeProvider) {
         matches = false;
       }
-
-      // Filter by Pricing (checking the boolean flags on the model)
       if (activePricing === "free" && !model.isFree) {
         matches = false;
       }
@@ -95,7 +91,6 @@ export function ModelSelector({
 
   const handleClose = () => {
     setIsModalOpen(false);
-    // Reset filters on close if desired, or keep them persistent
   };
 
   const handleConfirm = () => {
@@ -231,7 +226,7 @@ export function ModelSelector({
           overflowY: "auto",
           borderTop: "1px solid rgba(255,255,255,0.08)",
           borderBottom: "1px solid rgba(255,255,255,0.08)",
-          mx: -3, // Stretch to modal edges
+          mx: -3,
           px: 2,
         }}
       >
@@ -270,14 +265,20 @@ export function ModelSelector({
                   <ListItemText
                     primary={model.name}
                     secondary={`${formatContextLength(model.contextLength)} tokens`}
-                    primaryTypographyProps={{
-                      fontSize: "0.875rem",
-                      fontWeight: isSelected ? 600 : 400,
-                      color: isSelected ? "#fff" : "rgba(255,255,255,0.8)",
-                    }}
-                    secondaryTypographyProps={{
-                      fontSize: "0.75rem",
-                      color: "rgba(255,255,255,0.4)",
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: "0.875rem",
+                          fontWeight: isSelected ? 600 : 400,
+                          color: isSelected ? "#fff" : "rgba(255,255,255,0.8)",
+                        },
+                      },
+                      secondary: {
+                        sx: {
+                          fontSize: "0.75rem",
+                          color: "rgba(255,255,255,0.4)",
+                        },
+                      },
                     }}
                   />
                 </ListItemButton>
@@ -291,59 +292,37 @@ export function ModelSelector({
 
   return (
     <>
-      <Box
+      <Button
+        onClick={handleOpen}
+        disabled={isLoading || models.length === 0}
+        endIcon={<CaretDown weight="bold" size={14} />}
+        disableElevation
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          minWidth: { xs: "100%", sm: 320 },
+          // Professional pill-shape styling
+          borderRadius: "20px",
+          textTransform: "none",
+          bgcolor: isError ? "rgba(244, 67, 54, 0.08)" : "transparent",
+          border: "1px solid",
+          borderColor: isError ? "error.main" : "transparent",
+          color: isError
+            ? "error.main"
+            : activeModel
+              ? "#fff"
+              : "rgba(255,255,255,0.5)",
+          px: 1.5,
+          py: 0.5,
+          minHeight: "32px",
+          fontSize: "0.875rem",
+          fontWeight: 500,
+          transition: "all 0.2s ease",
+          "&:hover": {
+            bgcolor: "rgba(255, 255, 255, 0.08)",
+            borderColor: isError ? "error.dark" : "rgba(255, 255, 255, 0.1)",
+          },
         }}
       >
-        <Typography
-          variant="caption"
-          sx={{ color: "rgba(255,255,255,0.6)", ml: 0.5 }}
-        >
-          Model
-        </Typography>
-
-        {/* Replacement for the standard Select Dropdown */}
-        <Button
-          onClick={handleOpen}
-          disabled={isLoading || isError || models.length === 0}
-          endIcon={<CaretDown weight="bold" />}
-          sx={{
-            justifyContent: "space-between",
-            textTransform: "none",
-            border: "1px solid rgba(255,255,255,0.2)",
-            borderRadius: "8px",
-            color: activeModel ? "#fff" : "rgba(255,255,255,0.5)",
-            px: 2,
-            py: 1,
-            fontWeight: 400,
-            "&:hover": {
-              borderColor: "rgba(255,255,255,0.4)",
-              bgcolor: "rgba(255,255,255,0.05)",
-            },
-          }}
-        >
-          {activeModel ? activeModel.name : emptyLabel}
-        </Button>
-
-        {activeModel && (
-          <Typography
-            variant="caption"
-            sx={{ color: "rgba(255,255,255,0.4)", ml: 0.5 }}
-          >
-            {formatContextLength(activeModel.contextLength)} tokens
-          </Typography>
-        )}
-
-        {isError && (
-          <Alert severity="error" sx={{ mt: 1 }}>
-            Could not load models.
-          </Alert>
-        )}
-      </Box>
+        {activeModel ? activeModel.name : emptyLabel}
+      </Button>
 
       {/* The Reusable Modal */}
       <Modal

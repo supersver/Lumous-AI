@@ -1,7 +1,3 @@
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Divider from "@mui/material/Divider";
-import Typography from "@mui/material/Typography";
 import { useState } from "react";
 
 import { Modal } from "@/components/elements/Modal";
@@ -10,6 +6,7 @@ import { useDeleteKey } from "../api/deleteApiKey";
 import { useSaveKey } from "../api/saveApiKey";
 import type { ApiKeyProvider } from "../api/types";
 import { ApiKeyForm, ApiKeysList, type ProviderOption } from "../components";
+import { Box, Container, Divider, Link, Typography } from "@mui/material";
 
 const providerOptions: ProviderOption[] = [
   { label: "OpenRouter", value: "openrouter" },
@@ -96,8 +93,21 @@ export function Settings() {
           >
             API keys
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 560 }}>
-            Manage provider credentials for ModelPilot.
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 1, maxWidth: 560 }}
+          >
+            Manage provider credentials for ModelPilot.{" "}
+            <Link
+              href="https://openrouter.ai/workspaces/default/keys"
+              target="_blank"
+              rel="noopener noreferrer"
+              underline="hover"
+              sx={{ fontSize: "inherit" }}
+            >
+              Get your OpenRouter key →
+            </Link>
           </Typography>
         </Box>
 

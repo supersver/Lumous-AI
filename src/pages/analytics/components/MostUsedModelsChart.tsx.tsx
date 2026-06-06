@@ -1,5 +1,5 @@
 import { Card, Skeleton, Typography } from "@mui/material";
-import { BarChart } from "@mui/x-charts/BarChart";
+import { PieChart } from "@mui/x-charts/PieChart";
 
 import { useAnalyticsModels } from "../api/getAnalyticsModels";
 
@@ -11,8 +11,13 @@ export function MostUsedModelsChart() {
   const { data, isLoading } = useAnalyticsModels({ limit: 6, offset: 0 });
 
   const models = data ?? [];
-  const labels = models.map((m) => formatModelLabel(m.model));
-  const requests = models.map((m) => m.requests);
+
+  // Transform data into the format expected by MUI PieChart
+  const pieData = models.map((m, index) => ({
+    id: index,
+    value: m.requests,
+    label: formatModelLabel(m.model),
+  }));
 
   return (
     <Card
@@ -34,14 +39,17 @@ export function MostUsedModelsChart() {
           No model data yet.
         </Typography>
       ) : (
-        <BarChart
+        <PieChart
           height={240}
-          layout="horizontal"
-          series={[{ data: requests, label: "Requests", color: "#6366f1" }]}
-          yAxis={[{ scaleType: "band", data: labels }]}
-          xAxis={[{ label: "Requests" }]}
-          sx={{ "& .MuiChartsAxis-tickLabel": { fontSize: 11 } }}
-          borderRadius={4}
+          series={[
+            {
+              data: pieData,
+              innerRadius: 30,
+              paddingAngle: 2,
+              cornerRadius: 4,
+            },
+          ]}
+          margin={{ right: 120 }}
         />
       )}
     </Card>

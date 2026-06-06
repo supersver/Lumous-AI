@@ -1,19 +1,11 @@
-import {
-  Avatar,
-  Box,
-  CircularProgress,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Avatar, Box, Stack, Typography } from "@mui/material";
 import { UserCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useShallow } from "zustand/shallow";
 
 import { useAppStore } from "@/store/useAppStore";
-import { useGetModels } from "../api/getModels";
 import { MessagesArea } from "../components/MessagesArea";
-import { ModelSelector } from "../components/ModelSelector";
 import { PromptInput } from "../components/PromptInput";
 import { useChatSessions } from "../context/ChatSessionsContext";
 import { useChatStream } from "../hooks/useChatStream";
@@ -21,20 +13,13 @@ import { useChatStream } from "../hooks/useChatStream";
 export function Chats() {
   const { id: chatId } = useParams<{ id: string }>();
   const [draft, setDraft] = useState<string>("");
-  const { user, selectedModel, setSelectedModel } = useAppStore(
+  const { user, selectedModel } = useAppStore(
     useShallow((state) => ({
       user: state.user,
       selectedModel: state.selectedModel,
-      setSelectedModel: state.setSelectedModel,
     })),
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const modelsQuery = useGetModels();
-
-  // Extract models and filters from the updated API response shape
-  const models = modelsQuery.data?.models ?? [];
-  const filters = modelsQuery.data?.filters;
 
   const { activeSession, activeSessionId, selectSession } = useChatSessions();
   const { sendMessage: streamMessage, isStreaming } = useChatStream();
@@ -44,19 +29,6 @@ export function Chats() {
       selectSession(chatId);
     }
   }, [chatId, selectSession]);
-
-  useEffect(() => {
-    if (models.length === 0) return;
-
-    const selectedModelExists = models.some(
-      (model) => model.id === selectedModel?.id,
-    );
-
-    if (!selectedModelExists) {
-      const firstModel = models[0];
-      setSelectedModel({ id: firstModel.id, name: firstModel.name });
-    }
-  }, [models, selectedModel?.id, setSelectedModel]);
 
   const lastMessage = activeSession?.messages.at(-1);
 
@@ -137,29 +109,6 @@ export function Chats() {
               {activeSession?.messages.length ?? 0} messages
             </Typography>
           </Box>
-        </Stack>
-
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1.5}
-          sx={{
-            minWidth: 0,
-            alignItems: { sm: "flex-start" },
-            justifyContent: { xl: "flex-end" },
-          }}
-        >
-          {modelsQuery.isLoading ? (
-            <CircularProgress size={16} />
-          ) : (
-            <ModelSelector
-              isError={modelsQuery.isError}
-              isLoading={modelsQuery.isLoading}
-              models={models}
-              filters={filters} // Pass the newly extracted filters
-              selectedModel={selectedModel}
-              onModelChange={setSelectedModel}
-            />
-          )}
         </Stack>
       </Box>
 

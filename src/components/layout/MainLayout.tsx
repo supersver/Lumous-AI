@@ -3,8 +3,12 @@ import { Outlet } from "react-router-dom";
 
 import { ChatSessionsProvider } from "@/pages/chats/context/ChatSessionsContext";
 import Sidebar from "./Sidebar";
+import { useAppStore } from "@/store/useAppStore";
 
 export function MainLayout() {
+  const sidebarCollapsed = useAppStore((state) => state.sidebarCollapsed);
+  const setSidebarCollapsed = useAppStore((state) => state.setSidebarCollapsed);
+
   return (
     <ChatSessionsProvider>
       <Box
@@ -16,7 +20,10 @@ export function MainLayout() {
           color: "text.primary",
         }}
       >
-        <Sidebar />
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
         <Box
           component="main"
           sx={{

@@ -1,3 +1,5 @@
+import { Box, Button, Typography } from "@mui/material";
+
 type FallbackProps = {
   error: any;
   resetErrorBoundary: () => void;
@@ -5,22 +7,53 @@ type FallbackProps = {
 
 export function AppFallback({ error, resetErrorBoundary }: FallbackProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-16">
-      <div className="max-w-xl rounded-3xl border border-rose-500/30 bg-slate-900 p-8 text-left shadow-2xl shadow-slate-950/30">
-        <h2 className="text-2xl font-semibold text-rose-200">
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "background.default",
+        px: 2,
+        py: 8,
+      }}
+    >
+      <Box
+        sx={{
+          maxWidth: 480,
+          width: "100%",
+          p: 4,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "error.dark",
+          bgcolor: "background.paper",
+        }}
+      >
+        <Typography variant="h6" color="error.light" sx={{ fontWeight: 600 }}>
           Something went wrong
-        </h2>
-        <p className="mt-4 text-slate-400">
+        </Typography>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mt: 1.5, lineHeight: 1.7 }}
+        >
           {error?.message ?? "An unexpected error occurred."}
-        </p>
-        <button
-          type="button"
+        </Typography>
+        <Button
+          variant="contained"
+          color="error"
           onClick={resetErrorBoundary}
-          className="mt-6 rounded-full bg-rose-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-rose-400"
+          disableElevation
+          sx={{
+            mt: 3,
+            borderRadius: 999,
+            textTransform: "none",
+            fontWeight: 600,
+          }}
         >
           Try again
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Box>
+    </Box>
   );
 }

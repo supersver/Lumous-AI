@@ -1,8 +1,11 @@
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import TextField from "@mui/material/TextField";
+import { Box, CircularProgress, IconButton, InputBase } from "@mui/material";
 import { PaperPlaneTiltIcon } from "@phosphor-icons/react";
-import type { KeyboardEvent } from "react";
+import { useEffect, type KeyboardEvent } from "react";
+import { useShallow } from "zustand/react/shallow";
+
+import { ModelSelector } from "./ModelSelector";
+import { useGetModels } from "../api/getModels";
+import { useAppStore } from "@/store/useAppStore";
 
 interface PromptInputProps {
   canSend: boolean;
@@ -21,7 +24,33 @@ export function PromptInput({
   onDraftChange,
   onSend,
 }: PromptInputProps) {
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const modelsQuery = useGetModels();
+
+  const { selectedModel, setSelectedModel } = useAppStore(
+    useShallow((state) => ({
+      selectedModel: state.selectedModel,
+      setSelectedModel: state.setSelectedModel,
+    })),
+  );
+
+  // Extract models and filters from the updated API response shape
+  const models = modelsQuery.data?.models ?? [];
+  const filters = modelsQuery.data?.filters;
+
+  useEffect(() => {
+    if (models.length === 0) return;
+
+    const selectedModelExists = models.some(
+      (model) => model.id === selectedModel?.id,
+    );
+
+    if (!selectedModelExists) {
+      const firstModel = models[0];
+      setSelectedModel({ id: firstModel.id, name: firstModel.name });
+    }
+  }, [models, selectedModel?.id, setSelectedModel]);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       if (canSend) {
@@ -34,11 +63,11 @@ export function PromptInput({
     <Box
       component="footer"
       sx={{
-        borderTop: 1,
-        borderColor: "divider",
         bgcolor: "background.default",
         px: { xs: 2, sm: 3 },
         py: 2,
+        display: "flex",
+        justifyContent: "center",
       }}
     >
       <Box
@@ -48,47 +77,90 @@ export function PromptInput({
           onSend();
         }}
         sx={{
-          mx: "auto",
           display: "flex",
+          flexDirection: "column",
           width: "100%",
           maxWidth: 896,
-          alignItems: "flex-end",
-          gap: 1.5,
+          bgcolor: "background.paper",
+          borderRadius: "24px",
+          border: "1px solid",
+          borderColor: "divider",
+          p: 1.5,
+          boxShadow: "0px 2px 12px rgba(0, 0, 0, 0.04)",
+          transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+          "&:focus-within": {
+            borderColor: "primary.main",
+          },
         }}
       >
-        <TextField
+        <InputBase
           fullWidth
           multiline
           minRows={1}
           maxRows={6}
-          size="small"
           disabled={isSending}
           value={draft}
           onChange={(event) => onDraftChange(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={
             selectedModelName
-              ? `Ask ${selectedModelName}`
+              ? `Message ${selectedModelName}...`
               : "Select a model to chat"
           }
-        />
-        <IconButton
-          type="submit"
-          color="primary"
-          disabled={!canSend}
-          aria-label="Send prompt"
           sx={{
-            width: 48,
-            height: 48,
-            bgcolor: canSend ? "primary.main" : "action.disabledBackground",
-            color: canSend ? "primary.contrastText" : "text.disabled",
-            "&:hover": {
-              bgcolor: canSend ? "primary.light" : undefined,
-            },
+            px: 1,
+            pb: 2,
+            fontSize: "1rem",
+            alignItems: "flex-start",
+          }}
+        />
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mt: "auto",
           }}
         >
-          <PaperPlaneTiltIcon size={20} weight="fill" />
-        </IconButton>
+          {/* Left Side: Model Selector */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {modelsQuery.isLoading ? (
+              <Box sx={{ px: 2, py: 1 }}>
+                <CircularProgress size={16} />
+              </Box>
+            ) : (
+              <ModelSelector
+                isError={modelsQuery.isError}
+                isLoading={modelsQuery.isLoading}
+                models={models}
+                filters={filters}
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+              />
+            )}
+          </Box>
+
+          {/* Right Side: Send Button */}
+          <IconButton
+            type="submit"
+            disabled={!canSend}
+            aria-label="Send prompt"
+            sx={{
+              width: 40,
+              height: 40,
+              bgcolor: canSend ? "text.primary" : "action.disabledBackground",
+              color: canSend ? "background.default" : "text.disabled",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                bgcolor: canSend ? "text.primary" : undefined,
+                opacity: 0.8,
+              },
+            }}
+          >
+            <PaperPlaneTiltIcon size={18} weight="fill" />
+          </IconButton>
+        </Box>
       </Box>
     </Box>
   );

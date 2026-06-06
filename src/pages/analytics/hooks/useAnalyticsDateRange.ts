@@ -20,7 +20,7 @@ const buildRange = (days: number): AnalyticsDateRangeParams => {
 };
 
 export function useAnalyticsDateRange() {
-  const [activePreset, setActivePreset] = useState<DateRangePreset>("30d");
+  const [activePreset, setActivePreset] = useState<DateRangePreset>("7d");
   const [dateRange, setDateRange] = useState<AnalyticsDateRangeParams>(() =>
     buildRange(30),
   );

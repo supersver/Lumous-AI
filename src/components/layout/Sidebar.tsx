@@ -1,14 +1,18 @@
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import Divider from "@mui/material/Divider";
-import Drawer from "@mui/material/Drawer";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import Typography from "@mui/material/Typography";
+import {
+  Box,
+  Typography,
+  Avatar,
+  Drawer,
+  IconButton,
+  Tooltip,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton,
+  Divider,
+  List,
+  Menu,
+  MenuItem,
+} from "@mui/material";
 import { signOut } from "firebase/auth";
 import { useState } from "react";
 import {
@@ -17,6 +21,8 @@ import {
   RobotIcon,
   ChartBarIcon,
   CaretUpDownIcon,
+  SidebarSimpleIcon,
+  CaretRightIcon,
 } from "@phosphor-icons/react";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -26,19 +32,28 @@ import { useAppStore } from "@/store/useAppStore";
 import { ChatSidebarHistory } from "./ChatSidebarHistory";
 
 const DRAWER_WIDTH = 256;
+const COLLAPSED_WIDTH = 64;
 
 const navItems = [
   { to: "/analytics", label: "Analytics", icon: ChartBarIcon },
   { to: "/settings", label: "Settings", icon: GearSixIcon },
 ];
 
-export default function Sidebar() {
+const TRANSITION = "width 0.2s ease, padding 0.2s ease";
+
+interface SidebarProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const user = useAppStore((s) => s.user);
   const clearUser = useAppStore((s) => s.clearUser);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
+  const width = collapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH;
   const userInitial =
     user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?";
 
@@ -53,91 +68,161 @@ export default function Sidebar() {
     <Drawer
       variant="permanent"
       sx={{
-        width: DRAWER_WIDTH,
+        width,
         flexShrink: 0,
+        transition: TRANSITION,
         "& .MuiDrawer-paper": {
-          width: DRAWER_WIDTH,
+          width,
+          transition: TRANSITION,
+          overflowX: "hidden",
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
-          px: 1.5,
+          px: collapsed ? 1 : 1.5,
           py: 2,
         },
       }}
     >
+      {/* Header */}
       <Box
-        sx={{ display: "flex", alignItems: "center", gap: 1.25, px: 1, pb: 2 }}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: collapsed ? "center" : "space-between",
+          px: 1,
+          pb: 2,
+          minHeight: 36,
+        }}
       >
-        <RobotIcon size={24} color="#818cf8" weight="duotone" />
-        <Typography
-          variant="subtitle1"
-          color="text.primary"
-          sx={{ fontWeight: 600 }}
+        {!collapsed && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <RobotIcon size={22} color="#818cf8" weight="duotone" />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              ModelPilot
+            </Typography>
+          </Box>
+        )}
+
+        <Tooltip
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          placement="right"
         >
-          ModelPilot
-        </Typography>
+          <IconButton
+            size="small"
+            onClick={onToggle}
+            sx={{
+              color: "text.secondary",
+              "&:hover": { color: "text.primary" },
+            }}
+          >
+            {collapsed ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "3px",
+                  alignItems: "center",
+                }}
+              >
+                <RobotIcon size={22} color="#818cf8" weight="duotone" />
+                <CaretRightIcon />
+              </Box>
+            ) : (
+              <SidebarSimpleIcon size={18} />
+            )}
+          </IconButton>
+        </Tooltip>
       </Box>
 
-      <ChatSidebarHistory />
+      <ChatSidebarHistory collapsed={collapsed} />
 
       <Divider sx={{ my: 1.5 }} />
 
+      {/* Nav items */}
       <List dense disablePadding>
         {navItems.map(({ to, label, icon: Icon }) => (
-          <ListItemButton
-            key={to}
-            component={NavLink}
-            to={to}
-            sx={{
-              mb: 0.5,
-              "&.active": { bgcolor: "action.selected", color: "text.primary" },
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>
-              <Icon size={18} />
-            </ListItemIcon>
-            <ListItemText
-              primary={label}
-              slotProps={{ primary: { variant: "body2" } }}
-            />
-          </ListItemButton>
+          <Tooltip key={to} title={collapsed ? label : ""} placement="right">
+            <ListItemButton
+              component={NavLink}
+              to={to}
+              sx={{
+                mb: 0.5,
+                justifyContent: collapsed ? "center" : "flex-start",
+                px: collapsed ? 1 : 2,
+                "&.active": {
+                  bgcolor: "action.selected",
+                  color: "text.primary",
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: collapsed ? "auto" : 36,
+                  color: "inherit",
+                  justifyContent: "center",
+                }}
+              >
+                <Icon size={18} />
+              </ListItemIcon>
+              {!collapsed && (
+                <ListItemText
+                  primary={label}
+                  slotProps={{ primary: { variant: "body2" } }}
+                />
+              )}
+            </ListItemButton>
+          </Tooltip>
         ))}
       </List>
 
-      {/* User dropdown trigger */}
+      {/* User section */}
       <Box sx={{ mt: "auto" }}>
         <Divider sx={{ mb: 1.5 }} />
-        <ListItemButton
-          onClick={(e) => setMenuAnchor(e.currentTarget)}
-          sx={{
-            borderRadius: 2,
-            gap: 1,
-            "&:hover": { bgcolor: "action.hover" },
-          }}
+
+        <Tooltip
+          title={collapsed ? (user?.name ?? "User") : ""}
+          placement="right"
         >
-          <Avatar
+          <ListItemButton
+            onClick={(e) => setMenuAnchor(e.currentTarget)}
             sx={{
-              width: 28,
-              height: 28,
-              fontSize: 12,
-              bgcolor: "secondary.dark",
-              color: "secondary.light",
-              flexShrink: 0,
+              borderRadius: 2,
+              gap: 1,
+              justifyContent: collapsed ? "center" : "flex-start",
+              px: collapsed ? 1 : 2,
+              "&:hover": { bgcolor: "action.hover" },
             }}
           >
-            {userInitial}
-          </Avatar>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography
-              variant="caption"
-              noWrap
-              sx={{ fontWeight: 500, display: "block" }}
+            <Avatar
+              sx={{
+                width: 28,
+                height: 28,
+                fontSize: 12,
+                bgcolor: "secondary.dark",
+                color: "secondary.light",
+                flexShrink: 0,
+              }}
             >
-              {user?.name ?? "User"}
-            </Typography>
-          </Box>
-          <CaretUpDownIcon size={14} style={{ flexShrink: 0, opacity: 0.4 }} />
-        </ListItemButton>
+              {userInitial}
+            </Avatar>
+            {!collapsed && (
+              <>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography
+                    variant="caption"
+                    noWrap
+                    sx={{ fontWeight: 500, display: "block" }}
+                  >
+                    {user?.name ?? "User"}
+                  </Typography>
+                </Box>
+                <CaretUpDownIcon
+                  size={14}
+                  style={{ flexShrink: 0, opacity: 0.4 }}
+                />
+              </>
+            )}
+          </ListItemButton>
+        </Tooltip>
       </Box>
 
       {/* Dropdown menu */}
@@ -150,7 +235,7 @@ export default function Sidebar() {
         slotProps={{
           paper: {
             sx: {
-              width: DRAWER_WIDTH - 24,
+              width: 200,
               borderRadius: 2,
               border: "1px solid",
               borderColor: "divider",
@@ -190,11 +275,7 @@ export default function Sidebar() {
             mb: 0.5,
             borderRadius: 1.5,
             color: "error.light",
-            "&:hover": {
-              bgcolor: "error.dark",
-              opacity: 0.9,
-              color: "white",
-            },
+            "&:hover": { bgcolor: "error.dark", opacity: 0.9, color: "white" },
           }}
         >
           <SignOutIcon size={16} />

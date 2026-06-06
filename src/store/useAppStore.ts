@@ -27,6 +27,8 @@ interface AppState {
   clearUser: () => void;
   logout: () => void;
   setSelectedModel: (model: SelectedModel | null) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (sidebar: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -35,6 +37,7 @@ export const useAppStore = create<AppState>()(
       user: null,
       authReady: false,
       selectedModel: null,
+      sidebarCollapsed: false,
       setUser: (user) => set({ user }),
       setAuthReady: (authReady) => set({ authReady }),
       clearUser: () => set({ user: null }),
@@ -43,6 +46,7 @@ export const useAppStore = create<AppState>()(
         set({ authReady: true, user: null });
       },
       setSelectedModel: (model) => set({ selectedModel: model }),
+      setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
     }),
     {
       name: "modelpilot_app_store",
@@ -50,6 +54,7 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         user: state.user,
         selectedModel: state.selectedModel,
+        sidebarCollapsed: state.sidebarCollapsed,
       }),
     },
   ),

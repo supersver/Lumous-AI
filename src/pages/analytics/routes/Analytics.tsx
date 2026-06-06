@@ -27,7 +27,7 @@ export function Analytics() {
       sx={{
         p: 3,
         gap: 3,
-        maxWidth: 1200,
+        // maxWidth: ,
         mx: "auto",
         width: "100%",
         overflowY: "auto",

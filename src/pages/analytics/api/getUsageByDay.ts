@@ -4,9 +4,8 @@ import type { AnalyticsDateRangeParams } from "../types/apiTypes";
 
 export interface UsageByDayItem {
   date: string;
-  messages: number;
   tokens: number;
-  cost: string;
+  cost: number;
 }
 
 export const usageByDayQueryKey = (params: AnalyticsDateRangeParams) =>

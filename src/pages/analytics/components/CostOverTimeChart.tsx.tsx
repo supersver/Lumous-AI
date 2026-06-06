@@ -2,7 +2,8 @@ import { LineChart } from "@mui/x-charts/LineChart";
 
 import type { AnalyticsDateRangeParams } from "../types/apiTypes";
 import { useAnalyticsUsageByDay } from "../api/getUsageByDay";
-import { Card, Skeleton, Typography } from "@mui/material";
+import { Box, Card, Skeleton, Typography } from "@mui/material";
+import { ChartLineDownIcon } from "@phosphor-icons/react";
 
 interface CostOverTimeChartProps {
   dateRange: AnalyticsDateRangeParams;
@@ -18,7 +19,9 @@ export function CostOverTimeChart({ dateRange }: CostOverTimeChartProps) {
         day: "numeric",
       }),
     ) ?? [];
-  const costs = data?.map((d) => parseFloat(d.cost)) ?? [];
+  const costs = data?.map((d) => d.cost) ?? [];
+
+  const hasData = costs.some((c) => c > 0);
 
   return (
     <Card
@@ -36,6 +39,23 @@ export function CostOverTimeChart({ dateRange }: CostOverTimeChartProps) {
       </Typography>
       {isLoading ? (
         <Skeleton variant="rectangular" height={220} sx={{ borderRadius: 1 }} />
+      ) : !hasData ? (
+        <Box
+          sx={{
+            height: 220,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: "10px",
+          }}
+        >
+          <ChartLineDownIcon size={62} />
+
+          <Typography variant="body2" color="text.secondary">
+            No cost data for this period.
+          </Typography>
+        </Box>
       ) : (
         <LineChart
           height={240}

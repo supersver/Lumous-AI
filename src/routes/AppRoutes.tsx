@@ -6,6 +6,7 @@ import { auth } from "@/lib/firebase";
 import { login } from "@/pages/auth";
 import { useAppStore } from "@/store/useAppStore";
 import { CircularProgress, Box } from "@mui/material";
+import { useShallow } from "zustand/shallow";
 
 const Login = lazy(() =>
   import("@/pages/auth").then((m) => ({ default: m.Login })),
@@ -43,10 +44,14 @@ function PageLoader() {
 }
 
 function AuthGate({ children }: { children: ReactNode }) {
-  const authReady = useAppStore((state) => state.authReady);
-  const clearUser = useAppStore((state) => state.clearUser);
-  const setAuthReady = useAppStore((state) => state.setAuthReady);
-  const setUser = useAppStore((state) => state.setUser);
+  const { authReady, clearUser, setAuthReady, setUser } = useAppStore(
+    useShallow((state) => ({
+      authReady: state.authReady,
+      clearUser: state.clearUser,
+      setAuthReady: state.setAuthReady,
+      setUser: state.setUser,
+    })),
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
