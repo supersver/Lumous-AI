@@ -75,8 +75,6 @@ export function Chats() {
           display: "flex",
           flexDirection: { xs: "column", xl: "row" },
           gap: 2,
-          borderBottom: 1,
-          borderColor: "divider",
           px: { xs: 2, sm: 3 },
           py: 2,
           alignItems: { xl: "flex-start" },
@@ -91,22 +89,23 @@ export function Chats() {
           <Avatar
             variant="rounded"
             sx={{
-              width: 44,
-              height: 44,
+              width: 25,
+              height: 25,
               bgcolor: "background.paper",
               color: "secondary.light",
               border: 1,
               borderColor: "divider",
             }}
           >
-            <UserCircleIcon size={22} weight="duotone" />
+            <UserCircleIcon size={14} weight="duotone" />
           </Avatar>
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h5" noWrap sx={{ fontWeight: 600 }}>
+            <Typography
+              variant="h5"
+              noWrap
+              sx={{ fontWeight: 600, fontSize: 16 }}
+            >
               {activeSession?.title ?? "New chat"}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" noWrap>
-              {activeSession?.messages.length ?? 0} messages
             </Typography>
           </Box>
         </Stack>

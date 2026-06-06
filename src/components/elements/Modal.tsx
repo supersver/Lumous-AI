@@ -56,7 +56,7 @@ export function Modal({
         // Target the internal paper container to bypass the PaperProps TS error
         "& .MuiDialog-paper": {
           width: "100%",
-          maxWidth: 420,
+          maxWidth: 820,
           borderRadius: "16px",
           bgcolor: "#121214",
           backgroundImage: "none",
