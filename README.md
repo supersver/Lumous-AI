@@ -110,7 +110,7 @@ src/
 - [x] Markdown Support
 - [x] Syntax Highlighting
 - [x] Multi-model Selection
-- [ ] Usage Analytics Dashboard
+- [x] Usage Analytics Dashboard
 - [ ] Chat Search
 - [ ] Export Conversations
 - [ ] Shared Conversations
