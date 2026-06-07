@@ -25,6 +25,7 @@ Built with React, TypeScript, Tailwind CSS, and Firebase Authentication.
 - React
 - TypeScript
 - Tailwind CSS
+- Material UI
 - Zustand
 - TanStack Query
 - React Router
