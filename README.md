@@ -135,4 +135,6 @@ Users are responsible for managing and securing their own provider API keys.
 
 ## License
 
-Licensed under the MIT License.
+Lumous AI is licensed under the Apache License 2.0.
+
+You are free to use, modify, and distribute this software in accordance with the terms of the Apache License 2.0. See the [LICENSE](LICENSE) file for the full license text.
