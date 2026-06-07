@@ -175,7 +175,7 @@ export function PromptInput({
         variant="caption"
         sx={{ fontWeight: 600, fontSize: 14, color: "GrayText" }}
       >
-        ModelPilot is AI and can make mistakes.
+        Lumous is AI and can make mistakes.
       </Typography>
     </Box>
   );
