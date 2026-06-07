@@ -1,17 +1,19 @@
 import {
   Box,
+  Button,
   CircularProgress,
   IconButton,
   InputBase,
   Typography,
 } from "@mui/material";
-import { PaperPlaneTiltIcon } from "@phosphor-icons/react";
+import { ArrowUpRightIcon, PaperPlaneTiltIcon } from "@phosphor-icons/react";
 import { useEffect, type KeyboardEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { ModelSelector } from "./ModelSelector";
 import { useGetModels } from "../api/getModels";
 import { useAppStore } from "@/store/useAppStore";
+import { useNavigate } from "react-router-dom";
 
 interface PromptInputProps {
   canSend: boolean;
@@ -31,6 +33,7 @@ export function PromptInput({
   onSend,
 }: PromptInputProps) {
   const modelsQuery = useGetModels();
+  const navigate = useNavigate();
 
   const { selectedModel, setSelectedModel } = useAppStore(
     useShallow((state) => ({
@@ -79,6 +82,14 @@ export function PromptInput({
         gap: "3px",
       }}
     >
+      {!selectedModel && (
+        <Button
+          onClick={() => navigate("/settings")}
+          sx={{ fontWeight: 600, fontSize: 14, color: "yellow" }}
+        >
+          To Start, provide API Key in Settings <ArrowUpRightIcon />
+        </Button>
+      )}
       <Box
         component="form"
         onSubmit={(event) => {
@@ -153,7 +164,7 @@ export function PromptInput({
           {/* Right Side: Send Button */}
           <IconButton
             type="submit"
-            disabled={!canSend}
+            disabled={!canSend || models.length === 0}
             aria-label="Send prompt"
             sx={{
               width: 40,

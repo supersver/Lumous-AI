@@ -1,9 +1,10 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
+  Typography,
+} from "@mui/material";
 import {
   browserLocalPersistence,
   GoogleAuthProvider,
@@ -13,7 +14,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import fullLogo from "@/assets/full-logo.svg";
 import { auth } from "@/lib/firebase";
 import { useAppStore } from "@/store/useAppStore";
 import { login } from "../api/login";
@@ -46,50 +47,6 @@ function GoogleIcon() {
         d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.4-4.6 5.8l6.2 5.2C40.8 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z"
       />
     </svg>
-  );
-}
-
-function BrandMark({ inverted = false }: { inverted?: boolean }) {
-  return (
-    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-      <Box
-        sx={{
-          display: "grid",
-          placeItems: "center",
-          width: 44,
-          height: 44,
-          borderRadius: 1,
-          bgcolor: inverted ? "grey.900" : "primary.main",
-          color: inverted ? "primary.light" : "primary.contrastText",
-          typography: "subtitle1",
-          fontWeight: 800,
-        }}
-      >
-        MP
-      </Box>
-      <Box>
-        <Typography
-          variant="subtitle1"
-          sx={{
-            fontWeight: 600,
-            color: inverted ? "grey.100" : "text.primary",
-          }}
-        >
-          ModelPilot
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{
-            fontWeight: 600,
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            color: inverted ? "primary.light" : "text.secondary",
-          }}
-        >
-          Workspace
-        </Typography>
-      </Box>
-    </Stack>
   );
 }
 
@@ -149,7 +106,11 @@ export function Login() {
           py: 5,
         }}
       >
-        <BrandMark />
+        <img
+          src={fullLogo}
+          alt="Lumous AI"
+          style={{ width: "20%", height: 40 }}
+        />{" "}
         <Box sx={{ maxWidth: 560 }}>
           <Typography
             variant="overline"
@@ -161,17 +122,19 @@ export function Login() {
             variant="h3"
             sx={{ mt: 2, fontWeight: 600, lineHeight: 1.2 }}
           >
-            Pick up your model. Chat. Analyze.
+            One Workspace. Every AI Model.
           </Typography>
           <Typography
             variant="body1"
             sx={{ mt: 2, color: "grey.400", lineHeight: 1.7 }}
           >
-            Sign in with Google to return to your ModelPilot workspace.
+            Connect GPT, Claude, Gemini, DeepSeek, and more using your own API
+            keys. Track usage, compare models, and manage conversations from a
+            single dashboard.{" "}
           </Typography>
         </Box>
         <Typography variant="body2" color="grey.600">
-          ModelPilot account access
+          Lumous AI account access
         </Typography>
       </Box>
 
@@ -186,10 +149,6 @@ export function Login() {
         }}
       >
         <Box sx={{ width: "100%", maxWidth: 420 }}>
-          <Box sx={{ mb: 4, display: { xs: "block", lg: "none" } }}>
-            <BrandMark />
-          </Box>
-
           <Paper
             elevation={0}
             sx={{
@@ -199,6 +158,13 @@ export function Login() {
               boxShadow: "0 20px 45px rgba(15, 23, 42, 0.08)",
             }}
           >
+            <Box sx={{ mb: 4, display: { xs: "block", lg: "none" } }}>
+              <img
+                src={fullLogo}
+                alt="Lumous AI"
+                style={{ width: "auto", height: 40 }}
+              />
+            </Box>
             <Typography
               variant="overline"
               sx={{ color: "primary.dark", fontWeight: 600, letterSpacing: 1 }}
@@ -206,7 +172,7 @@ export function Login() {
               Sign in
             </Typography>
             <Typography variant="h4" sx={{ mt: 1.5, fontWeight: 600 }}>
-              Continue to ModelPilot
+              Continue to Lumous AI
             </Typography>
             <Typography
               variant="body2"
@@ -224,11 +190,7 @@ export function Login() {
               aria-busy={loading}
               onClick={handleGoogleLogin}
               startIcon={
-                loading ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  <GoogleIcon />
-                )
+                loading ? <CircularProgress size={20} /> : <GoogleIcon />
               }
               sx={{
                 mt: 4,
@@ -240,6 +202,9 @@ export function Login() {
                 "&:hover": {
                   borderColor: "grey.400",
                   bgcolor: "grey.400",
+                },
+                "&:disabled": {
+                  color: "grey.900",
                 },
               }}
             >

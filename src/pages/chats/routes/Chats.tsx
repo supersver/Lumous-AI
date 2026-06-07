@@ -1,28 +1,24 @@
 import { Avatar, Box, Stack, Typography } from "@mui/material";
 import { UserCircleIcon } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useShallow } from "zustand/shallow";
 
 import { useAppStore } from "@/store/useAppStore";
 import { MessagesArea } from "../components/MessagesArea";
-import { PromptInput } from "../components/PromptInput";
 import { useChatSessions } from "../context/ChatSessionsContext";
 import { useChatStream } from "../hooks/useChatStream";
 
 export function Chats() {
   const { id: chatId } = useParams<{ id: string }>();
-  const [draft, setDraft] = useState<string>("");
-  const { user, selectedModel } = useAppStore(
+  const { user } = useAppStore(
     useShallow((state) => ({
       user: state.user,
-      selectedModel: state.selectedModel,
     })),
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const { isStreaming } = useChatStream();
   const { activeSession, activeSessionId, selectSession } = useChatSessions();
-  const { sendMessage: streamMessage, isStreaming } = useChatStream();
 
   useEffect(() => {
     if (chatId && activeSessionId !== chatId) {
@@ -37,26 +33,12 @@ export function Chats() {
   }, [
     activeSession?.id,
     activeSession?.messages.length,
-    isStreaming,
     lastMessage?.content,
     lastMessage?.status,
   ]);
 
   const userInitial =
     user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "M";
-  const canSend =
-    draft.trim().length > 0 &&
-    Boolean(selectedModel) &&
-    Boolean(chatId) &&
-    !isStreaming;
-
-  const handleSendPrompt = () => {
-    if (!canSend || !chatId || !selectedModel) return;
-
-    const content = draft.trim();
-    setDraft("");
-    void streamMessage({ chatId, content, model: selectedModel.id });
-  };
 
   return (
     <Box
@@ -116,15 +98,6 @@ export function Chats() {
         isAwaitingResponse={isStreaming}
         session={activeSession}
         userInitial={userInitial}
-      />
-
-      <PromptInput
-        canSend={canSend}
-        draft={draft}
-        isSending={isStreaming}
-        selectedModelName={selectedModel?.name}
-        onDraftChange={setDraft}
-        onSend={handleSendPrompt}
       />
     </Box>
   );

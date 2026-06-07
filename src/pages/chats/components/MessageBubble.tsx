@@ -1,7 +1,7 @@
 import { Avatar, Box, Chip, Paper, Stack, Typography } from "@mui/material";
-import { RobotIcon } from "@phosphor-icons/react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import logo from "@/assets/logo.svg";
 
 import { formatTime } from "@/utils/time";
 import type { ChatMessage } from "../types";
@@ -51,10 +51,8 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
           width: 36,
           height: 36,
           flexShrink: 0,
-          bgcolor: isUser ? "primary.dark" : "secondary.dark",
-          color: isUser ? "primary.light" : "secondary.light",
-          border: 1,
-          borderColor: isUser ? "primary.main" : "secondary.main",
+          bgcolor: isUser ? "primary.dark" : "transparent",
+          color: isUser ? "primary.light" : "",
         }}
       >
         {isUser ? (
@@ -62,7 +60,11 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
             {userInitial}
           </Typography>
         ) : (
-          <RobotIcon size={18} weight="duotone" />
+          <img
+            src={logo}
+            alt="Lumous AI"
+            style={{ width: "auto", height: 25, display: "block" }}
+          />
         )}
       </Avatar>
 
@@ -85,7 +87,7 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
           }}
         >
           <Typography variant="caption" color="text.secondary">
-            {isUser ? "You" : "ModelPilot"}
+            {isUser ? "You" : "Lumous AI"}
           </Typography>
           <Typography variant="caption" color="text.disabled">
             {formatTime(message.createdAt)}

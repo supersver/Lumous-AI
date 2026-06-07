@@ -98,7 +98,7 @@ export function Settings() {
             color="text.secondary"
             sx={{ mt: 1, maxWidth: 560 }}
           >
-            Manage provider credentials for ModelPilot.{" "}
+            Manage provider credentials for Lumous AI.{" "}
             <Link
               href="https://openrouter.ai/workspaces/default/keys"
               target="_blank"

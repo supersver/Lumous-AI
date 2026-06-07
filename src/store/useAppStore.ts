@@ -49,7 +49,7 @@ export const useAppStore = create<AppState>()(
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
     }),
     {
-      name: "modelpilot_app_store",
+      name: "lumous_ai",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,

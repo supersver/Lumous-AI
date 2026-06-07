@@ -12,6 +12,7 @@ import {
   List,
   Menu,
   MenuItem,
+  Button,
 } from "@mui/material";
 import { signOut } from "firebase/auth";
 import { useState } from "react";
@@ -95,25 +96,19 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         }}
       >
         {!collapsed && (
-          <Box
+          <Button
+            size="small"
             sx={{
-              cursor: "pointer",
-              userSelect: "none",
-              transition: "transform 0.2s ease, opacity 0.2s ease",
-              "&:hover": {
-                opacity: 0.9,
-                transform: "scale(0.98)",
-              },
-              display: "flex",
-              alignItems: "center",
+              ml: "-10px",
             }}
+            onClick={() => navigate("/")}
           >
             <img
               src={fullLogo}
-              alt="ModelPilot"
-              style={{ width: "auto", height: 40, display: "block" }}
+              alt="Lumous AI"
+              style={{ width: "auto", height: 35, display: "block" }}
             />
-          </Box>
+          </Button>
         )}
 
         <Tooltip
@@ -138,7 +133,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               >
                 <img
                   src={logo}
-                  alt="ModelPilot"
+                  alt="Lumous AI"
                   style={{ width: 30, height: 30 }}
                 />
               </Box>

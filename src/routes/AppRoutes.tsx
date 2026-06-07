@@ -7,6 +7,7 @@ import { login } from "@/pages/auth";
 import { useAppStore } from "@/store/useAppStore";
 import { CircularProgress, Box } from "@mui/material";
 import { useShallow } from "zustand/shallow";
+import { ChatLayout } from "@/pages/chats";
 
 const Login = lazy(() =>
   import("@/pages/auth").then((m) => ({ default: m.Login })),
@@ -117,8 +118,10 @@ export function AppRoutes() {
               </ProtectedRoute>
             }
           >
-            <Route path="/" element={<ChatIndexRedirect />} />
-            <Route path="/chat/:id" element={<Chats />} />
+            <Route element={<ChatLayout />}>
+              <Route path="/" element={<ChatIndexRedirect />} />
+              <Route path="/chat/:id" element={<Chats />} />
+            </Route>
             <Route path="/settings" element={<Settings />} />
             <Route path="/analytics" element={<Analytics />} />
           </Route>

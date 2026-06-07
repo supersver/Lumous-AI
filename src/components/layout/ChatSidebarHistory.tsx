@@ -94,6 +94,7 @@ export function ChatSidebarHistory({ collapsed }: ChatSidebarHistoryProps) {
         <Button
           variant="outlined"
           fullWidth
+          disabled={!selectedModel}
           onClick={handleNewChat}
           startIcon={!collapsed ? <NotePencilIcon size={18} /> : undefined}
           sx={{

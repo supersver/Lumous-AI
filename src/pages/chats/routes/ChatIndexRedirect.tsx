@@ -1,19 +1,6 @@
-import { Box, Button, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-
-import { useAppStore } from "@/store/useAppStore";
-import { useChatSessions } from "../context/ChatSessionsContext";
+import { Box, Typography } from "@mui/material";
 
 export function ChatIndexRedirect() {
-  const navigate = useNavigate();
-  const selectedModel = useAppStore((s) => s.selectedModel);
-  const { createSession } = useChatSessions();
-
-  const handleNewChat = async () => {
-    const sessionId = await createSession(selectedModel?.id ?? "");
-    navigate(`/chat/${sessionId}`);
-  };
-
   return (
     <Box
       sx={{
@@ -22,7 +9,6 @@ export function ChatIndexRedirect() {
         minHeight: 0,
         alignItems: "center",
         justifyContent: "center",
-        bgcolor: "background.default",
         px: 3,
       }}
     >
@@ -32,7 +18,7 @@ export function ChatIndexRedirect() {
           flexDirection: "column",
           alignItems: "center",
           textAlign: "center",
-          maxWidth: 320,
+          maxWidth: 420,
           width: "100%",
         }}
       >
@@ -63,31 +49,16 @@ export function ChatIndexRedirect() {
           <circle cx="68" cy="134" r="8" fill="#22d3ee" />
           <circle cx="181" cy="126" r="5" fill="#34d399" />
         </Box>
-
-        <Typography variant="h6" sx={{ mt: 3, fontWeight: 600 }}>
-          Start a conversation
+        <Typography variant="h4" sx={{ mt: 3, fontWeight: 600 }}>
+          Any new ideas to explore?
         </Typography>
         <Typography
           variant="body2"
           color="text.secondary"
           sx={{ mt: 1, lineHeight: 1.7 }}
         >
-          Create a new chat and pick up with your selected model.
+          Type a message below to start a new conversation.
         </Typography>
-        <Button
-          variant="contained"
-          onClick={handleNewChat}
-          disableElevation
-          sx={{
-            mt: 3,
-            borderRadius: 2,
-            textTransform: "none",
-            fontWeight: 600,
-            px: 3,
-          }}
-        >
-          New Chat
-        </Button>
       </Box>
     </Box>
   );

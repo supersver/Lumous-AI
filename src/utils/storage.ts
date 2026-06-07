@@ -1,4 +1,4 @@
-const storagePrefix = "modelpilot_";
+const storagePrefix = "LumousAI_";
 
 const storage = {
   getAccessToken: (): string | null => {
