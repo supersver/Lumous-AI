@@ -28,6 +28,7 @@ Built with React, TypeScript, Tailwind CSS, and Firebase Authentication.
 - Material UI
 - Zustand
 - TanStack Query
+- Axios
 - React Router
 - Firebase Authentication
 - React Markdown
