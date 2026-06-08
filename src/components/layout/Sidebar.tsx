@@ -30,7 +30,6 @@ import { Modal } from "@/components/elements/Modal";
 import { useAppStore } from "@/store/useAppStore";
 import { ChatSidebarHistory } from "./ChatSidebarHistory";
 import logo from "@/assets/logo.svg";
-import fullLogo from "@/assets/full-logo.svg";
 
 const DRAWER_WIDTH = 256;
 const COLLAPSED_WIDTH = 64;
@@ -100,14 +99,27 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             size="small"
             sx={{
               ml: "-10px",
+              display: "flex",
+              gap: "5px",
+              textTransform: "none",
             }}
             onClick={() => navigate("/")}
           >
             <img
-              src={fullLogo}
+              src={logo}
               alt="Lumous AI"
-              style={{ width: "auto", height: 35, display: "block" }}
+              style={{ width: "auto", height: 25, display: "block" }}
             />
+            <Typography
+              component="span"
+              sx={{
+                fontSize: "1.25rem",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Lumous AI
+            </Typography>
           </Button>
         )}
 

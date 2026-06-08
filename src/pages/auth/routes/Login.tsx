@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import fullLogo from "@/assets/full-logo.svg";
+import logo from "@/assets/logo.svg";
 import { auth } from "@/lib/firebase";
 import { useAppStore } from "@/store/useAppStore";
 import { login } from "../api/login";
@@ -57,18 +57,14 @@ export function Login() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-
     try {
       await setPersistence(auth, browserLocalPersistence);
       await signInWithPopup(auth, googleProvider);
-
       const res = await login();
-
       if (!res.user) {
         toast.error("Login succeeded, but no user profile was returned.");
         return;
       }
-
       setUser(res.user);
       navigate("/", { replace: true });
     } catch (err: unknown) {
@@ -76,7 +72,6 @@ export function Login() {
         err instanceof Error
           ? err.message
           : "Google sign-in failed. Please try again.";
-
       toast.error(message);
     } finally {
       setLoading(false);
@@ -94,6 +89,7 @@ export function Login() {
         color: "text.primary",
       }}
     >
+      {/* ── Left dark panel (unchanged) ── */}
       <Box
         sx={{
           display: { xs: "none", lg: "flex" },
@@ -106,11 +102,24 @@ export function Login() {
           py: 5,
         }}
       >
-        <img
-          src={fullLogo}
-          alt="Lumous AI"
-          style={{ width: "20%", height: 40 }}
-        />{" "}
+        <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 1 }}>
+          <img
+            src={logo}
+            alt="Lumous AI"
+            style={{ width: "auto", height: 40 }}
+          />
+          <Typography
+            component="span"
+            sx={{
+              fontSize: "2rem",
+              fontWeight: 600,
+              letterSpacing: "-0.02em",
+              color: "text.primary",
+            }}
+          >
+            Lumous AI
+          </Typography>
+        </Box>
         <Box sx={{ maxWidth: 560 }}>
           <Typography
             variant="overline"
@@ -130,7 +139,7 @@ export function Login() {
           >
             Connect GPT, Claude, Gemini, DeepSeek, and more using your own API
             keys. Track usage, compare models, and manage conversations from a
-            single dashboard.{" "}
+            single dashboard.
           </Typography>
         </Box>
         <Typography variant="body2" color="grey.600">
@@ -138,6 +147,7 @@ export function Login() {
         </Typography>
       </Box>
 
+      {/* ── Right panel: dot grid background ── */}
       <Box
         sx={{
           display: "flex",
@@ -146,9 +156,104 @@ export function Login() {
           justifyContent: "center",
           px: { xs: 2.5, sm: 4 },
           py: 4,
+          position: "relative",
+          overflow: "hidden",
+          // Dot grid
+          backgroundColor: "#f5f6fa",
+          backgroundImage:
+            "radial-gradient(circle, #6366f1 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
         }}
       >
-        <Box sx={{ width: "100%", maxWidth: 420 }}>
+        {/* Accent glow blobs */}
+        <Box
+          aria-hidden="true"
+          sx={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `
+              radial-gradient(ellipse 65% 55% at 10% 85%, rgba(99,102,241,0.12) 0%, transparent 70%),
+              radial-gradient(ellipse 55% 45% at 90% 15%, rgba(129,140,248,0.09) 0%, transparent 70%)
+            `,
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
+
+        {/* Decorative SVG lines + rings */}
+        <Box
+          aria-hidden="true"
+          component="svg"
+          xmlns="http://www.w3.org/2000/svg"
+          sx={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        >
+          <line
+            x1="0"
+            y1="75%"
+            x2="38%"
+            y2="25%"
+            stroke="#6366f1"
+            strokeWidth="0.7"
+            opacity="0.12"
+          />
+          <line
+            x1="100%"
+            y1="15%"
+            x2="60%"
+            y2="70%"
+            stroke="#818cf8"
+            strokeWidth="0.7"
+            opacity="0.10"
+          />
+          <line
+            x1="8%"
+            y1="0"
+            x2="48%"
+            y2="58%"
+            stroke="#6366f1"
+            strokeWidth="0.5"
+            opacity="0.08"
+          />
+          <circle
+            cx="10%"
+            cy="12%"
+            r="40"
+            fill="none"
+            stroke="#6366f1"
+            strokeWidth="0.6"
+            opacity="0.13"
+          />
+          <circle
+            cx="88%"
+            cy="88%"
+            r="55"
+            fill="none"
+            stroke="#818cf8"
+            strokeWidth="0.6"
+            opacity="0.10"
+          />
+          <circle
+            cx="85%"
+            cy="14%"
+            r="22"
+            fill="none"
+            stroke="#6366f1"
+            strokeWidth="0.5"
+            opacity="0.10"
+          />
+        </Box>
+
+        {/* Card */}
+        <Box
+          sx={{ width: "100%", maxWidth: 420, position: "relative", zIndex: 1 }}
+        >
           <Paper
             elevation={0}
             sx={{
@@ -158,13 +263,32 @@ export function Login() {
               boxShadow: "0 20px 45px rgba(15, 23, 42, 0.08)",
             }}
           >
-            <Box sx={{ mb: 4, display: { xs: "block", lg: "none" } }}>
+            <Box
+              sx={{
+                mb: 4,
+                display: { xs: "flex", lg: "none" },
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
               <img
-                src={fullLogo}
+                src={logo}
                 alt="Lumous AI"
                 style={{ width: "auto", height: 40 }}
               />
+              <Typography
+                component="span"
+                sx={{
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  letterSpacing: "-0.02em",
+                  color: "text.primary",
+                }}
+              >
+                Lumous AI
+              </Typography>
             </Box>
+
             <Typography
               variant="overline"
               sx={{ color: "primary.dark", fontWeight: 600, letterSpacing: 1 }}
@@ -199,13 +323,8 @@ export function Login() {
                 borderColor: "grey.300",
                 color: "grey.900",
                 bgcolor: "grey.50",
-                "&:hover": {
-                  borderColor: "grey.400",
-                  bgcolor: "grey.400",
-                },
-                "&:disabled": {
-                  color: "grey.900",
-                },
+                "&:hover": { borderColor: "grey.400", bgcolor: "grey.400" },
+                "&:disabled": { color: "grey.900" },
               }}
             >
               {loading ? "Signing in..." : "Continue with Google"}
