@@ -1,5 +1,4 @@
-import { Avatar, Box, Stack, Typography } from "@mui/material";
-import { UserCircleIcon } from "@phosphor-icons/react";
+import { Box } from "@mui/material";
 import { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useShallow } from "zustand/shallow";
