@@ -22,13 +22,15 @@ interface AppState {
   user: AuthUser | null;
   authReady: boolean;
   selectedModel: SelectedModel | null;
+  sidebarCollapsed: boolean;
+  mobileOpen: boolean;
   setUser: (user: AuthUser) => void;
   setAuthReady: (authReady: boolean) => void;
   clearUser: () => void;
   logout: () => void;
   setSelectedModel: (model: SelectedModel | null) => void;
-  sidebarCollapsed: boolean;
   setSidebarCollapsed: (sidebar: boolean) => void;
+  setMobileOpen: (open: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -38,6 +40,7 @@ export const useAppStore = create<AppState>()(
       authReady: false,
       selectedModel: null,
       sidebarCollapsed: false,
+      mobileOpen: false,
       setUser: (user) => set({ user }),
       setAuthReady: (authReady) => set({ authReady }),
       clearUser: () => set({ user: null }),
@@ -47,6 +50,7 @@ export const useAppStore = create<AppState>()(
       },
       setSelectedModel: (model) => set({ selectedModel: model }),
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
+      setMobileOpen: (mobileOpen) => set({ mobileOpen }),
     }),
     {
       name: "lumous_ai",

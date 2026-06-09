@@ -13,6 +13,8 @@ import {
   Menu,
   MenuItem,
   Button,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { signOut } from "firebase/auth";
 import { useState } from "react";
@@ -33,27 +35,39 @@ import logo from "@/assets/logo.svg";
 
 const DRAWER_WIDTH = 256;
 const COLLAPSED_WIDTH = 64;
+const TRANSITION = "width 0.2s ease, padding 0.2s ease";
 
 const navItems = [
   { to: "/analytics", label: "Analytics", icon: ChartBarIcon },
   { to: "/settings", label: "Settings", icon: GearSixIcon },
 ];
 
-const TRANSITION = "width 0.2s ease, padding 0.2s ease";
-
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  mobileOpen: boolean;
+  onMobileClose: () => void;
 }
 
-export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export default function Sidebar({
+  collapsed,
+  onToggle,
+  mobileOpen,
+  onMobileClose,
+}: SidebarProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   const user = useAppStore((s) => s.user);
   const clearUser = useAppStore((s) => s.clearUser);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const width = collapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH;
+  // On mobile: always full-width, never collapsed
+  const effectiveCollapsed = isMobile ? false : collapsed;
+  const width = effectiveCollapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH;
+
   const userInitial =
     user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?";
 
@@ -64,37 +78,20 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     navigate("/login");
   };
 
-  return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width,
-        flexShrink: 0,
-        transition: TRANSITION,
-        "& .MuiDrawer-paper": {
-          width,
-          transition: TRANSITION,
-          overflowX: "hidden",
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-          px: collapsed ? 1 : 1.5,
-          py: 2,
-        },
-      }}
-    >
+  const drawerContent = (
+    <>
       {/* Header */}
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
-          justifyContent: collapsed ? "center" : "space-between",
+          justifyContent: effectiveCollapsed ? "center" : "space-between",
           px: 1,
           pb: 2,
           minHeight: 36,
         }}
       >
-        {!collapsed && (
+        {!effectiveCollapsed && (
           <Button
             size="small"
             sx={{
@@ -103,7 +100,10 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               gap: "5px",
               textTransform: "none",
             }}
-            onClick={() => navigate("/")}
+            onClick={() => {
+              navigate("/");
+              if (isMobile) onMobileClose();
+            }}
           >
             <img
               src={logo}
@@ -123,54 +123,57 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </Button>
         )}
 
-        <Tooltip
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          placement="right"
-        >
-          <IconButton
-            size="small"
-            onClick={onToggle}
-            sx={{
-              color: "text.secondary",
-              "&:hover": { color: "text.primary" },
-            }}
+        {/* Hide collapse toggle on mobile */}
+        {!isMobile && (
+          <Tooltip
+            title={effectiveCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            placement="right"
           >
-            {collapsed ? (
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: "3px",
-                  alignItems: "center",
-                }}
-              >
-                <img
-                  src={logo}
-                  alt="Lumous AI"
-                  style={{ width: 30, height: 30 }}
-                />
-              </Box>
-            ) : (
-              <SidebarSimpleIcon size={18} />
-            )}
-          </IconButton>
-        </Tooltip>
+            <IconButton
+              size="small"
+              onClick={onToggle}
+              sx={{
+                color: "text.secondary",
+                "&:hover": { color: "text.primary" },
+              }}
+            >
+              {effectiveCollapsed ? (
+                <Box sx={{ display: "flex", gap: "3px", alignItems: "center" }}>
+                  <img
+                    src={logo}
+                    alt="Lumous AI"
+                    style={{ width: 30, height: 30 }}
+                  />
+                </Box>
+              ) : (
+                <SidebarSimpleIcon size={18} />
+              )}
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
 
-      <ChatSidebarHistory collapsed={collapsed} />
+      <ChatSidebarHistory collapsed={effectiveCollapsed} />
 
       <Divider sx={{ my: 1.5 }} />
 
-      {/* Nav items */}
       <List dense disablePadding>
         {navItems.map(({ to, label, icon: Icon }) => (
-          <Tooltip key={to} title={collapsed ? label : ""} placement="right">
+          <Tooltip
+            key={to}
+            title={effectiveCollapsed ? label : ""}
+            placement="right"
+          >
             <ListItemButton
               component={NavLink}
               to={to}
+              onClick={() => {
+                if (isMobile) onMobileClose();
+              }}
               sx={{
                 mb: 0.5,
-                justifyContent: collapsed ? "center" : "flex-start",
-                px: collapsed ? 1 : 2,
+                justifyContent: effectiveCollapsed ? "center" : "flex-start",
+                px: effectiveCollapsed ? 1 : 2,
                 "&.active": {
                   bgcolor: "action.selected",
                   color: "text.primary",
@@ -179,14 +182,14 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             >
               <ListItemIcon
                 sx={{
-                  minWidth: collapsed ? "auto" : 36,
+                  minWidth: effectiveCollapsed ? "auto" : 36,
                   color: "inherit",
                   justifyContent: "center",
                 }}
               >
                 <Icon size={18} />
               </ListItemIcon>
-              {!collapsed && (
+              {!effectiveCollapsed && (
                 <ListItemText
                   primary={label}
                   slotProps={{ primary: { variant: "body2" } }}
@@ -200,9 +203,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* User section */}
       <Box sx={{ mt: "auto" }}>
         <Divider sx={{ mb: 1.5 }} />
-
         <Tooltip
-          title={collapsed ? (user?.name ?? "User") : ""}
+          title={effectiveCollapsed ? (user?.name ?? "User") : ""}
           placement="right"
         >
           <ListItemButton
@@ -210,8 +212,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             sx={{
               borderRadius: 2,
               gap: 1,
-              justifyContent: collapsed ? "center" : "flex-start",
-              px: collapsed ? 1 : 2,
+              justifyContent: effectiveCollapsed ? "center" : "flex-start",
+              px: effectiveCollapsed ? 1 : 2,
               "&:hover": { bgcolor: "action.hover" },
             }}
           >
@@ -227,7 +229,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             >
               {userInitial}
             </Avatar>
-            {!collapsed && (
+            {!effectiveCollapsed && (
               <>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography
@@ -283,9 +285,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             {user?.email}
           </Typography>
         </Box>
-
         <Divider />
-
         <MenuItem
           onClick={() => {
             setMenuAnchor(null);
@@ -314,6 +314,54 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         description="Are you sure you want to sign out?"
         confirmLabel="Sign out"
       />
-    </Drawer>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile: temporary overlay drawer */}
+      {isMobile ? (
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={onMobileClose}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            "& .MuiDrawer-paper": {
+              width: DRAWER_WIDTH,
+              boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+              px: 1.5,
+              py: 2,
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      ) : (
+        /* Desktop: permanent drawer */
+        <Drawer
+          variant="permanent"
+          sx={{
+            width,
+            flexShrink: 0,
+            transition: TRANSITION,
+            "& .MuiDrawer-paper": {
+              width,
+              transition: TRANSITION,
+              overflowX: "hidden",
+              boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+              px: effectiveCollapsed ? 1 : 1.5,
+              py: 2,
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
+    </>
   );
 }

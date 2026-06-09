@@ -51,48 +51,6 @@ export function Chats() {
         color: "text.primary",
       }}
     >
-      <Box
-        component="header"
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", xl: "row" },
-          gap: 2,
-          px: { xs: 2, sm: 3 },
-          py: 2,
-          alignItems: { xl: "flex-start" },
-          justifyContent: { xl: "space-between" },
-        }}
-      >
-        <Stack
-          direction="row"
-          spacing={1.5}
-          sx={{ minWidth: 0, alignItems: "flex-start" }}
-        >
-          <Avatar
-            variant="rounded"
-            sx={{
-              width: 25,
-              height: 25,
-              bgcolor: "background.paper",
-              color: "secondary.light",
-              border: 1,
-              borderColor: "divider",
-            }}
-          >
-            <UserCircleIcon size={14} weight="duotone" />
-          </Avatar>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography
-              variant="h5"
-              noWrap
-              sx={{ fontWeight: 600, fontSize: 16 }}
-            >
-              {activeSession?.title ?? "New chat"}
-            </Typography>
-          </Box>
-        </Stack>
-      </Box>
-
       <MessagesArea
         bottomRef={messagesEndRef}
         isAwaitingResponse={isStreaming}
