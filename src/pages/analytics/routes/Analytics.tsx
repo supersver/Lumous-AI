@@ -75,10 +75,10 @@ export function Analytics() {
           <CostOverTimeChart dateRange={dateRange} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <TokenUsageChart dateRange={dateRange} />
+          <MostUsedModelsChart />
         </Grid>
         <Grid size={{ xs: 12 }}>
-          <MostUsedModelsChart />
+          <TokenUsageChart dateRange={dateRange} />
         </Grid>
       </Grid>
     </Stack>

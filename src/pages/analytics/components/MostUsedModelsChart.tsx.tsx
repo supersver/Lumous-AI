@@ -8,7 +8,7 @@ const formatModelLabel = (model: string) =>
   model.split("/").pop()?.replace(/:.*$/, "") ?? model;
 
 export function MostUsedModelsChart() {
-  const { data, isLoading } = useAnalyticsModels({ limit: 6, offset: 0 });
+  const { data, isLoading } = useAnalyticsModels({ limit: 10, offset: 0 });
 
   const models = data ?? [];
 
@@ -16,7 +16,7 @@ export function MostUsedModelsChart() {
   const pieData = models.map((m, index) => ({
     id: index,
     value: m.requests,
-    label: formatModelLabel(m.model),
+    label: `${formatModelLabel(m.model)} (${m.requests} requests)`,
   }));
 
   return (
@@ -47,6 +47,8 @@ export function MostUsedModelsChart() {
               innerRadius: 30,
               paddingAngle: 2,
               cornerRadius: 4,
+              // arcLabel: (item) => `${item.value} requests`,
+              arcLabelMinAngle: 15,
             },
           ]}
           margin={{ right: 120 }}

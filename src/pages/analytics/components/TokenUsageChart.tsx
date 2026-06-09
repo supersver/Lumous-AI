@@ -38,7 +38,7 @@ export function TokenUsageChart({ dateRange }: TokenUsageChartProps) {
       ) : (
         <BarChart
           height={240}
-          series={[{ data: tokens, label: "Tokens", color: "#34d399" }]}
+          series={[{ data: tokens, label: "Tokens", color: "#00D3C3" }]}
           xAxis={[{ scaleType: "band", data: dates }]}
           sx={{ "& .MuiChartsAxis-tickLabel": { fontSize: 11 } }}
           borderRadius={4}

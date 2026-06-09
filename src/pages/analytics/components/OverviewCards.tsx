@@ -83,8 +83,8 @@ export function OverviewCards({ dateRange }: OverviewCardsProps) {
 
   const cards = [
     {
-      label: "Total Cost",
-      value: data?.totalCost ?? "—",
+      label: "Total Spend",
+      value: data?.totalCost != null ? `$${data?.totalCost}` : "—",
       icon: CoinIcon,
       color: "#818cf8",
       bg: "rgba(129,140,248,0.1)",

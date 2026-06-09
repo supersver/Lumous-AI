@@ -38,7 +38,10 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       user: null,
       authReady: false,
-      selectedModel: null,
+      selectedModel: {
+        id: "openai/gpt-oss-20b:free",
+        name: "OpenAI: gpt-oss-20b (free)",
+      },
       sidebarCollapsed: false,
       mobileOpen: false,
       setUser: (user) => set({ user }),

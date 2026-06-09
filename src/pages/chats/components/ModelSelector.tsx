@@ -8,8 +8,11 @@ import {
   ListItemText,
   Stack,
   Typography,
+  TextField,
+  Autocomplete,
+  InputAdornment,
 } from "@mui/material";
-import { CaretDown } from "@phosphor-icons/react";
+import { CaretDown, MagnifyingGlass } from "@phosphor-icons/react";
 
 import type { SelectedModel } from "@/store/useAppStore";
 import type { Model } from "../api/getModels";
@@ -41,9 +44,30 @@ interface ModelSelectorProps {
   onModelChange: (model: SelectedModel | null) => void;
 }
 
+type ProviderOption = { label: string; slug: string | null };
+
+const ALL_PROVIDERS: ProviderOption = { label: "All Providers", slug: null };
+
 const numberFormatter = new Intl.NumberFormat();
-const formatContextLength = (contextLength: number) => {
-  return numberFormatter.format(contextLength);
+const formatContextLength = (n: number) => numberFormatter.format(n);
+
+// Shared dark input styles for TextField / Autocomplete
+const darkInputSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 1.5,
+    bgcolor: "rgba(255,255,255,0.04)",
+    color: "white",
+    fontSize: "0.875rem",
+    "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
+    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.2)" },
+    "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.3)" },
+  },
+  "& .MuiInputBase-input::placeholder": {
+    color: "rgba(255,255,255,0.35)",
+    opacity: 1,
+  },
+  // Autocomplete clear + popup icons
+  "& .MuiSvgIcon-root": { color: "rgba(255,255,255,0.4)" },
 };
 
 export function ModelSelector({
@@ -54,56 +78,58 @@ export function ModelSelector({
   selectedModel,
   onModelChange,
 }: ModelSelectorProps) {
-  // Modal & Selection State
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [tempSelectedModelId, setTempSelectedModelId] = useState<string | null>(
     selectedModel?.id ?? null,
   );
-  const [activeProvider, setActiveProvider] = useState<string | null>(null);
+  const [activeProvider, setActiveProvider] =
+    useState<ProviderOption>(ALL_PROVIDERS);
   const [activePricing, setActivePricing] = useState<"free" | "paid" | null>(
     null,
   );
+  const [modelSearch, setModelSearch] = useState("");
 
-  // Filter the models list based on the active chips
+  const providerOptions: ProviderOption[] = useMemo(
+    () => [
+      ALL_PROVIDERS,
+      ...(filters?.providers.map((p) => ({
+        label: `${p.name} (${p.count})`,
+        slug: p.slug,
+      })) ?? []),
+    ],
+    [filters],
+  );
+
   const filteredModels = useMemo(() => {
+    const search = modelSearch.toLowerCase();
     return models.filter((model) => {
-      let matches = true;
-
-      if (activeProvider && model.providerSlug !== activeProvider) {
-        matches = false;
-      }
-      if (activePricing === "free" && !model.isFree) {
-        matches = false;
-      }
-      if (activePricing === "paid" && !model.isPaid) {
-        matches = false;
-      }
-
-      return matches;
+      if (activeProvider.slug && model.providerSlug !== activeProvider.slug)
+        return false;
+      if (activePricing === "free" && !model.isFree) return false;
+      if (activePricing === "paid" && !model.isPaid) return false;
+      if (search && !model.name.toLowerCase().includes(search)) return false;
+      return true;
     });
-  }, [models, activeProvider, activePricing]);
+  }, [models, activeProvider, activePricing, modelSearch]);
 
-  // Handlers
+  const activeModel = useMemo(
+    () => models.find((m) => m.id === selectedModel?.id) ?? null,
+    [models, selectedModel?.id],
+  );
+
   const handleOpen = () => {
     setTempSelectedModelId(selectedModel?.id ?? null);
+    setModelSearch("");
     setIsModalOpen(true);
   };
 
-  const handleClose = () => {
-    setIsModalOpen(false);
-  };
+  const handleClose = () => setIsModalOpen(false);
 
   const handleConfirm = () => {
-    const modelToSelect = models.find((m) => m.id === tempSelectedModelId);
-    onModelChange(
-      modelToSelect ? { id: modelToSelect.id, name: modelToSelect.name } : null,
-    );
+    const model = models.find((m) => m.id === tempSelectedModelId);
+    onModelChange(model ? { id: model.id, name: model.name } : null);
     setIsModalOpen(false);
   };
-
-  const activeModel = useMemo(() => {
-    return models.find((model) => model.id === selectedModel?.id) ?? null;
-  }, [models, selectedModel?.id]);
 
   const emptyLabel = isLoading
     ? "Loading models..."
@@ -111,118 +137,117 @@ export function ModelSelector({
       ? "Models unavailable"
       : "Select model...";
 
+  const sectionLabel = (text: string) => (
+    <Typography
+      variant="caption"
+      sx={{
+        color: "rgba(255,255,255,0.4)",
+        textTransform: "uppercase",
+        letterSpacing: "0.06em",
+        fontWeight: 600,
+      }}
+    >
+      {text}
+    </Typography>
+  );
+
   const modalContent = (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 1 }}>
-      {filters && (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {/* Providers Filter */}
-          <Box>
-            <Typography
-              variant="caption"
-              sx={{
-                color: "rgba(255,255,255,0.5)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Providers
-            </Typography>
-            <Stack direction="row" sx={{ mt: 1, flexWrap: "wrap", gap: 1 }}>
-              <Chip
-                label="All"
-                onClick={() => setActiveProvider(null)}
-                sx={{
-                  bgcolor:
-                    activeProvider === null
-                      ? "rgba(255,255,255,0.1)"
-                      : "transparent",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color:
-                    activeProvider === null ? "#fff" : "rgba(255,255,255,0.6)",
-                }}
-              />
-              {filters.providers.map((provider) => (
-                <Chip
-                  key={provider.slug}
-                  label={`${provider.name} (${provider.count})`}
-                  onClick={() => setActiveProvider(provider.slug)}
-                  sx={{
-                    bgcolor:
-                      activeProvider === provider.slug
-                        ? "rgba(255,255,255,0.1)"
-                        : "transparent",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    color:
-                      activeProvider === provider.slug
-                        ? "#fff"
-                        : "rgba(255,255,255,0.6)",
-                  }}
-                />
-              ))}
-            </Stack>
-          </Box>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mt: 1 }}>
+      {/* Providers — searchable dropdown */}
+      <Box>
+        {sectionLabel("Provider")}
+        <Autocomplete
+          disableClearable
+          size="small"
+          options={providerOptions}
+          value={activeProvider}
+          onChange={(_, newValue) =>
+            setActiveProvider(newValue ?? ALL_PROVIDERS)
+          }
+          isOptionEqualToValue={(opt, val) => opt.slug === val.slug}
+          getOptionLabel={(opt) => opt.label}
+          sx={{ mt: 1 }}
+          slotProps={{
+            paper: {
+              sx: {
+                bgcolor: "#1a1a2e",
+                border: "1px solid rgba(255,255,255,0.12)",
+                color: "white",
+                "& .MuiAutocomplete-option": {
+                  fontSize: "0.875rem",
+                  color: "rgba(255,255,255,0.8)",
+                  '&[aria-selected="true"]': {
+                    bgcolor: "rgba(255,255,255,0.1)",
+                  },
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
+                },
+              },
+            },
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              placeholder="Search providers..."
+              sx={darkInputSx}
+            />
+          )}
+        />
+      </Box>
 
-          {/* Pricing Filter */}
-          <Box>
-            <Typography
-              variant="caption"
-              sx={{
-                color: "rgba(255,255,255,0.5)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Pricing
-            </Typography>
-            <Stack direction="row" sx={{ mt: 1, flexWrap: "wrap", gap: 1 }}>
+      {/* Pricing filter */}
+      <Box>
+        {sectionLabel("Pricing")}
+        <Stack direction="row" sx={{ mt: 1, flexWrap: "wrap", gap: 1 }}>
+          {(["all", "free", "paid"] as const).map((key) => {
+            const isAll = key === "all";
+            const isActive = isAll
+              ? activePricing === null
+              : activePricing === key;
+            const label = isAll
+              ? "All"
+              : key === "free"
+                ? `Free (${filters?.pricing.free ?? 0})`
+                : `Paid (${filters?.pricing.paid ?? 0})`;
+            return (
               <Chip
-                label="All"
-                onClick={() => setActivePricing(null)}
+                key={key}
+                label={label}
+                onClick={() => setActivePricing(isAll ? null : key)}
+                size="small"
                 sx={{
-                  bgcolor:
-                    activePricing === null
-                      ? "rgba(255,255,255,0.1)"
-                      : "transparent",
+                  bgcolor: isActive ? "rgba(255,255,255,0.12)" : "transparent",
                   border: "1px solid rgba(255,255,255,0.12)",
-                  color:
-                    activePricing === null ? "#fff" : "rgba(255,255,255,0.6)",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.5)",
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.08)" },
                 }}
               />
-              <Chip
-                label={`Free (${filters.pricing.free})`}
-                onClick={() => setActivePricing("free")}
-                sx={{
-                  bgcolor:
-                    activePricing === "free"
-                      ? "rgba(255,255,255,0.1)"
-                      : "transparent",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color:
-                    activePricing === "free" ? "#fff" : "rgba(255,255,255,0.6)",
-                }}
-              />
-              <Chip
-                label={`Paid (${filters.pricing.paid})`}
-                onClick={() => setActivePricing("paid")}
-                sx={{
-                  bgcolor:
-                    activePricing === "paid"
-                      ? "rgba(255,255,255,0.1)"
-                      : "transparent",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color:
-                    activePricing === "paid" ? "#fff" : "rgba(255,255,255,0.6)",
-                }}
-              />
-            </Stack>
-          </Box>
-        </Box>
-      )}
+            );
+          })}
+        </Stack>
+      </Box>
 
-      {/* Model List */}
+      {/* Model search */}
+      <TextField
+        size="small"
+        placeholder="Search models..."
+        value={modelSearch}
+        onChange={(e) => setModelSearch(e.target.value)}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <MagnifyingGlass size={15} color="rgba(255,255,255,0.35)" />
+              </InputAdornment>
+            ),
+          },
+        }}
+        sx={darkInputSx}
+      />
+
+      {/* Model list */}
       <Box
         sx={{
-          maxHeight: 250,
+          maxHeight: 240,
           overflowY: "auto",
           borderTop: "1px solid rgba(255,255,255,0.08)",
           borderBottom: "1px solid rgba(255,255,255,0.08)",
@@ -234,12 +259,12 @@ export function ModelSelector({
           <Typography
             sx={{
               p: 2,
-              color: "rgba(255,255,255,0.5)",
+              color: "rgba(255,255,255,0.4)",
               textAlign: "center",
               fontSize: "0.875rem",
             }}
           >
-            No models match your selected filters.
+            No models match your filters.
           </Typography>
         ) : (
           <List disablePadding>
@@ -250,7 +275,7 @@ export function ModelSelector({
                   key={model.id}
                   onClick={() => setTempSelectedModelId(model.id)}
                   sx={{
-                    borderRadius: "8px",
+                    borderRadius: 1,
                     my: 0.5,
                     bgcolor: isSelected
                       ? "rgba(255,255,255,0.08)"
@@ -276,7 +301,7 @@ export function ModelSelector({
                       secondary: {
                         sx: {
                           fontSize: "0.75rem",
-                          color: "rgba(255,255,255,0.4)",
+                          color: "rgba(255,255,255,0.35)",
                         },
                       },
                     }}
@@ -298,7 +323,6 @@ export function ModelSelector({
         endIcon={<CaretDown weight="bold" size={14} />}
         disableElevation
         sx={{
-          // Professional pill-shape styling
           borderRadius: "20px",
           textTransform: "none",
           bgcolor: isError ? "rgba(244, 67, 54, 0.08)" : "transparent",
@@ -324,7 +348,6 @@ export function ModelSelector({
         {activeModel ? activeModel.name : emptyLabel}
       </Button>
 
-      {/* The Reusable Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleClose}
