@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ArrowUpRightIcon, PaperPlaneTiltIcon } from "@phosphor-icons/react";
-import { useEffect, type KeyboardEvent } from "react";
+import { useEffect, useMemo, type KeyboardEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { ModelSelector } from "./ModelSelector";
@@ -43,7 +43,10 @@ export function PromptInput({
   );
 
   // Extract models and filters from the updated API response shape
-  const models = modelsQuery.data?.models ?? [];
+  const models = useMemo(
+    () => modelsQuery.data?.models ?? [],
+    [modelsQuery.data?.models],
+  );
   const filters = modelsQuery.data?.filters;
 
   useEffect(() => {

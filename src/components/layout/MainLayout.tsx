@@ -2,7 +2,7 @@ import { useTheme, useMediaQuery, Box, IconButton } from "@mui/material";
 import { SidebarSimpleIcon } from "@phosphor-icons/react";
 import { Outlet } from "react-router-dom";
 
-import { ChatSessionsProvider } from "@/pages/chats/context/ChatSessionsContext";
+import { ChatSessionsProvider } from "@/pages/chats/context/ChatSessionsProvider";
 import Sidebar from "./Sidebar";
 import { useAppStore } from "@/store/useAppStore";
 

@@ -11,12 +11,8 @@ const normalizeApiKeys = (payload: ApiKeysListResponse): ApiKey[] => {
 };
 
 export const getApiKeys = async (): Promise<ApiKey[]> => {
-  try {
-    const res = await axios.get<ApiKeysListResponse>("/api-keys");
-    return normalizeApiKeys(res.data);
-  } catch (err) {
-    throw err;
-  }
+  const res = await axios.get<ApiKeysListResponse>("/api-keys");
+  return normalizeApiKeys(res.data);
 };
 
 export const useApiKeys = (
