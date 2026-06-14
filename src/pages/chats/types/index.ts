@@ -105,12 +105,14 @@ export type SSEPayload = {
   createdAt?: string;
   modelId?: string;
   modelName?: string;
-  message?: {
-    id?: string;
-    content?: string;
-    createdAt?: string;
-    modelId?: string;
-    modelName?: string;
-  };
+  message?:
+    | {
+        id?: string;
+        content?: string;
+        createdAt?: string;
+        modelId?: string;
+        modelName?: string;
+      }
+    | string;
   error?: string;
 };

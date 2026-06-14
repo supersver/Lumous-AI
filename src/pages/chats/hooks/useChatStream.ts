@@ -160,7 +160,8 @@ export function useChatStream() {
             s.content += chunk;
             appendToMessage(chatId, s.msgId, chunk);
           } else if (event === "complete") {
-            const finalMsg = payload?.message ?? payload;
+            const finalMsg =
+              typeof payload?.message === "object" ? payload.message : payload;
             replaceMessage(chatId, s.msgId, {
               ...baseMsg,
               id: finalMsg.id ?? s.msgId,
@@ -174,7 +175,11 @@ export function useChatStream() {
             break;
           } else if (event === "error") {
             throw new Error(
-              payload?.error ?? payload?.message?.content ?? "Stream error",
+              payload?.error ??
+                (typeof payload?.message === "string"
+                  ? payload.message
+                  : payload?.message?.content) ??
+                "Stream error",
             );
           }
         }
