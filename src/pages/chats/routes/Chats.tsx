@@ -23,7 +23,7 @@ export function Chats() {
     if (chatId && activeSessionId !== chatId) {
       selectSession(chatId);
     }
-  }, [chatId, selectSession]);
+  }, [chatId, selectSession, activeSessionId]);
 
   const lastMessage = activeSession?.messages.at(-1);
 

@@ -6,7 +6,7 @@ type MessagesById = Record<string, ChatMessage>;
 type ChatMessagesById = Record<string, MessagesById>;
 type MessageOrderByChatId = Record<string, string[]>;
 
-interface ChatMessagesState {
+export interface ChatMessagesState {
   messagesByChatId: ChatMessagesById;
   messageOrderByChatId: MessageOrderByChatId;
   addMessage: (chatId: string, message: ChatMessage) => void;
@@ -22,10 +22,7 @@ interface ChatMessagesState {
     messageId: string,
     message: ChatMessage,
   ) => void;
-  setChatMessagesFromServer: (
-    chatId: string,
-    messages: ChatMessage[],
-  ) => void;
+  setChatMessagesFromServer: (chatId: string, messages: ChatMessage[]) => void;
   updateMessage: (
     chatId: string,
     messageId: string,

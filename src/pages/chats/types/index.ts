@@ -94,3 +94,23 @@ export interface ChatStreamErrorPayload {
   message?: string;
   error?: string;
 }
+
+export type SSEPayload = {
+  assistantMessageId?: string;
+  messageId?: string;
+  id?: string;
+  token?: string;
+  delta?: string;
+  content?: string;
+  createdAt?: string;
+  modelId?: string;
+  modelName?: string;
+  message?: {
+    id?: string;
+    content?: string;
+    createdAt?: string;
+    modelId?: string;
+    modelName?: string;
+  };
+  error?: string;
+};
