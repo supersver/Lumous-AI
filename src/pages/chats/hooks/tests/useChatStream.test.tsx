@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import React from "react";
+import React, { type ReactNode } from "react";
 import { useChatStream, parseSSE, readSSE } from "../useChatStream";
 
 // --- Mocks ---
@@ -36,7 +36,7 @@ const createWrapper = () => {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return ({ children }: any) =>
+  return ({ children }: { children: ReactNode }) =>
     React.createElement(QueryClientProvider, { client: qc }, children);
 };
 
@@ -109,7 +109,10 @@ describe("useChatStream", () => {
       'event: complete\ndata: {"message": {"id": "server-123", "content": "Hello world"}}\n\n',
     ]);
 
-    vi.mocked(fetch).mockResolvedValue({ ok: true, body: stream } as any);
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      body: stream,
+    } as unknown as Response);
 
     const { result } = renderHook(() => useChatStream(), {
       wrapper: createWrapper(),
@@ -163,7 +166,11 @@ describe("useChatStream", () => {
       'event: error\ndata: {"message": "Rate limit exceeded"}\n\n',
     ]);
 
-    vi.mocked(fetch).mockResolvedValue({ ok: true, body: stream } as any);
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      body: stream,
+    } as unknown as Response);
+
     const { result } = renderHook(() => useChatStream(), {
       wrapper: createWrapper(),
     });

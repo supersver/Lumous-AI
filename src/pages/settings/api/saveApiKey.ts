@@ -10,12 +10,8 @@ import type { ApiKey, SaveApiKeyInput } from "./types";
 import { apiKeysQueryKey } from "./getApiKeys";
 
 export const saveKey = async (input: SaveApiKeyInput): Promise<ApiKey> => {
-  try {
-    const res = await axios.post<ApiKey>("/api-keys", input);
-    return res.data;
-  } catch (err) {
-    throw err;
-  }
+  const res = await axios.post<ApiKey>("/api-keys", input);
+  return res.data;
 };
 
 export const useSaveKey = (

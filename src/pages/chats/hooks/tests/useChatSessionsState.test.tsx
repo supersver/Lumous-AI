@@ -3,6 +3,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import type { ReactNode } from "react";
+import type { ChatMessagesState } from "../../store/useChatMessagesStore";
 
 const mocks = vi.hoisted(() => ({
   useGetChats: vi.fn(),
@@ -43,16 +44,22 @@ vi.mock("../../api/sendMessage", () => ({
 }));
 
 vi.mock("../../store/useChatMessagesStore", () => ({
-  useChatMessagesStore: (selector: any) =>
+  useChatMessagesStore: (selector: (state: ChatMessagesState) => unknown) =>
     selector({
       messagesByChatId: {},
       messageOrderByChatId: {},
       clearChatMessages: mocks.clearChatMessages,
       setChatMessagesFromServer: mocks.setChatMessagesFromServer,
+      addMessage: vi.fn(),
+      appendToMessage: vi.fn(),
+      markChatMessagesComplete: vi.fn(),
+      replaceMessage: vi.fn(),
+      updateMessage: vi.fn(),
     }),
 }));
 
 import { useChatSessionsState } from "../useChatSessions";
+import type { Model } from "../../api/getModels";
 
 function createWrapper() {
   return function Wrapper({ children }: { children: ReactNode }) {
@@ -162,7 +169,7 @@ describe("useChatSessionsState", () => {
     });
 
     await act(async () => {
-      await result.current.sendMessage("Hello", { id: "gpt-4" } as any);
+      await result.current.sendMessage("Hello", { id: "gpt-4" } as Model);
     });
 
     expect(mocks.sendMessage).toHaveBeenCalledWith({
@@ -205,7 +212,7 @@ describe("useChatSessionsState", () => {
     });
 
     await act(async () => {
-      await result.current.sendMessage("Hello", { id: "gpt-4" } as any);
+      await result.current.sendMessage("Hello", { id: "gpt-4" } as Model);
     });
 
     expect(mocks.createChat).toHaveBeenCalled();

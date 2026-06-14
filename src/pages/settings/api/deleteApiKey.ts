@@ -9,11 +9,7 @@ import { axios } from "@/lib/axios";
 import { apiKeysQueryKey } from "./getApiKeys";
 
 export const deleteKey = async (id: string): Promise<void> => {
-  try {
-    await axios.delete(`/api-keys/${encodeURIComponent(id)}`);
-  } catch (err) {
-    throw err;
-  }
+  await axios.delete(`/api-keys/${encodeURIComponent(id)}`);
 };
 
 export const useDeleteKey = (

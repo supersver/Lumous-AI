@@ -6,7 +6,7 @@ import storage from "../utils/storage";
 import { auth } from "./firebase";
 import { toast } from "react-toastify";
 
-async function authRequestInterceptor(config: InternalAxiosRequestConfig<any>) {
+async function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (!config.headers) {
     config.headers = new AxiosHeaders();
   }
@@ -54,14 +54,13 @@ axios.interceptors.response.use(
       window.location.assign("/login");
     } else {
       toast.error(error?.response.data.error.message);
-      {
-        ENVIRONMENT &&
-          console.log("API Error:", {
-            url: error?.config?.url,
-            method: error?.config?.method,
-            status,
-            response: error?.response,
-          });
+      if (ENVIRONMENT) {
+        console.log("API Error:", {
+          url: error?.config?.url,
+          method: error?.config?.method,
+          status,
+          response: error?.response,
+        });
       }
       return Promise.reject(error);
     }

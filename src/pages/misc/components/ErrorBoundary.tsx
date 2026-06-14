@@ -1,11 +1,10 @@
 import { Box, Button, Typography } from "@mui/material";
-
-type FallbackProps = {
-  error: any;
-  resetErrorBoundary: () => void;
-};
+import { type FallbackProps } from "react-error-boundary";
 
 export function AppFallback({ error, resetErrorBoundary }: FallbackProps) {
+  const message =
+    error instanceof Error ? error.message : "An unexpected error occurred.";
+
   return (
     <Box
       sx={{
@@ -37,7 +36,7 @@ export function AppFallback({ error, resetErrorBoundary }: FallbackProps) {
           color="text.secondary"
           sx={{ mt: 1.5, lineHeight: 1.7 }}
         >
-          {error?.message ?? "An unexpected error occurred."}
+          {message}
         </Typography>
         <Button
           variant="contained"

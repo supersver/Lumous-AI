@@ -6,15 +6,22 @@ export interface CreateChatDto {
   model: string;
 }
 
-export const createNewChat = async (model: CreateChatDto): Promise<any> => {
-  const res = await axios.post<any>("/chats", model);
+export interface Chat {
+  id: string;
+  title?: string;
+  model: string;
+  createdAt: string;
+}
+
+export const createNewChat = async (dto: CreateChatDto): Promise<Chat> => {
+  const res = await axios.post<Chat>("/chats", dto);
   return res.data;
 };
 
 export const useCreateNewChat = (
-  config: UseMutationOptions<any, Error, CreateChatDto> = {},
+  config: UseMutationOptions<Chat, Error, CreateChatDto> = {},
 ) => {
-  return useMutation<any, Error, CreateChatDto>({
+  return useMutation<Chat, Error, CreateChatDto>({
     mutationFn: createNewChat,
     onError: (error) => {
       toast.error(error?.message || "Chat creation failed.");

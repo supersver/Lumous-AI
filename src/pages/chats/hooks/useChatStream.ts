@@ -8,7 +8,7 @@ import { auth } from "@/lib/firebase";
 import { chatQueryKey } from "../api/getChat";
 import { chatsQueryKey } from "../api/getChats";
 import { useChatMessagesStore } from "../store/useChatMessagesStore";
-import type { ChatMessage, StreamMessageInput } from "../types";
+import type { ChatMessage, SSEPayload, StreamMessageInput } from "../types";
 
 const uid = (p: string) => `${p}-${crypto.randomUUID()}`;
 const streamUrl = (id: string) =>
@@ -140,10 +140,12 @@ export function useChatStream() {
           const s = streamRef.current;
           if (!s) break;
 
-          let payload: any = {};
+          let payload: SSEPayload = {};
           try {
             payload = data ? JSON.parse(data) : {};
-          } catch {}
+          } catch (error) {
+            console.log(error);
+          }
 
           if (event === "start") {
             const serverId =
@@ -158,7 +160,8 @@ export function useChatStream() {
             s.content += chunk;
             appendToMessage(chatId, s.msgId, chunk);
           } else if (event === "complete") {
-            const finalMsg = payload?.message ?? payload;
+            const finalMsg =
+              typeof payload?.message === "object" ? payload.message : payload;
             replaceMessage(chatId, s.msgId, {
               ...baseMsg,
               id: finalMsg.id ?? s.msgId,
@@ -172,7 +175,11 @@ export function useChatStream() {
             break;
           } else if (event === "error") {
             throw new Error(
-              payload?.message ?? payload?.error ?? "Stream error",
+              payload?.error ??
+                (typeof payload?.message === "string"
+                  ? payload.message
+                  : payload?.message?.content) ??
+                "Stream error",
             );
           }
         }
@@ -182,9 +189,9 @@ export function useChatStream() {
           qc.invalidateQueries({ queryKey: chatQueryKey(chatId) }),
           qc.invalidateQueries({ queryKey: chatsQueryKey }),
         ]);
-      } catch (err: any) {
-        if (err.name === "AbortError") return;
-        const message = err.message || "Stream failed";
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") return;
+        const message = err instanceof Error ? err.message : "Stream failed";
         const s = streamRef.current;
         if (s) {
           updateMessage(chatId, s.msgId, {
