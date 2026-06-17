@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useShallow } from "zustand/react/shallow";
 
@@ -8,11 +8,24 @@ import { auth } from "@/lib/firebase";
 import { chatQueryKey } from "../api/getChat";
 import { chatsQueryKey } from "../api/getChats";
 import { useChatMessagesStore } from "../store/useChatMessagesStore";
-import type { ChatMessage, SSEPayload, StreamMessageInput } from "../types";
+import { useChatStreamStore } from "../store/useChatStreamStore";
+import type {
+  ChatMessage,
+  ChatStreamControls,
+  SSEPayload,
+  StreamMessageInput,
+} from "../types";
 
 const uid = (p: string) => `${p}-${crypto.randomUUID()}`;
 const streamUrl = (id: string) =>
   `${API_URL?.replace(/\/$/, "")}/chats/${encodeURIComponent(id)}/messages/stream`;
+
+let activeAbortController: AbortController | null = null;
+
+const clearActiveStreamConnection = () => {
+  activeAbortController = null;
+  useChatStreamStore.getState().clearActiveStream();
+};
 
 export const parseSSE = (raw: string) => {
   let event = "message",
@@ -50,16 +63,9 @@ export async function* readSSE(body: ReadableStream<Uint8Array>) {
   }
 }
 
-export function useChatStream() {
+export function useChatStream(): ChatStreamControls {
   const qc = useQueryClient();
-  const [isStreaming, setIsStreaming] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
-  const streamRef = useRef<{
-    chatId: string;
-    msgId: string;
-    userMsgId: string;
-    content: string;
-  } | null>(null);
+  const isStreaming = useChatStreamStore((state) => state.isStreaming);
 
   const {
     addMessage,
@@ -78,16 +84,23 @@ export function useChatStream() {
   );
 
   const stopStreaming = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    streamRef.current = null;
-    setIsStreaming(false);
-  }, []);
+    const activeStream = useChatStreamStore.getState().activeStream;
+
+    activeAbortController?.abort();
+
+    if (activeStream) {
+      markChatMessagesComplete(activeStream.chatId);
+    }
+
+    clearActiveStreamConnection();
+  }, [markChatMessagesComplete]);
 
   const sendMessage = useCallback(
     async ({ chatId, content, model }: StreamMessageInput) => {
-      if (!chatId || !content.trim() || streamRef.current) {
-        if (streamRef.current) toast.info("Already streaming.");
+      const streamStore = useChatStreamStore.getState();
+
+      if (!chatId || !content.trim() || streamStore.activeStream) {
+        if (streamStore.activeStream) toast.info("Already streaming.");
         return;
       }
 
@@ -112,14 +125,13 @@ export function useChatStream() {
       addMessage(chatId, baseMsg);
 
       const abort = new AbortController();
-      abortRef.current = abort;
-      streamRef.current = {
+      activeAbortController = abort;
+      streamStore.startStream({
         chatId,
-        msgId: assistantMsgId,
-        userMsgId,
+        assistantMessageId: assistantMsgId,
+        userMessageId: userMsgId,
         content: "",
-      };
-      setIsStreaming(true);
+      });
 
       try {
         const token = await auth.currentUser?.getIdToken(true);
@@ -137,7 +149,7 @@ export function useChatStream() {
           throw new Error(`Stream failed (${res.status})`);
 
         for await (const { event, data } of readSSE(res.body)) {
-          const s = streamRef.current;
+          const s = useChatStreamStore.getState().activeStream;
           if (!s) break;
 
           let payload: SSEPayload = {};
@@ -151,27 +163,35 @@ export function useChatStream() {
             const serverId =
               payload?.assistantMessageId ?? payload?.messageId ?? payload?.id;
             if (serverId) {
-              replaceMessage(chatId, s.msgId, { ...baseMsg, id: serverId });
-              s.msgId = serverId;
+              replaceMessage(chatId, s.assistantMessageId, {
+                ...baseMsg,
+                id: serverId,
+              });
+              useChatStreamStore
+                .getState()
+                .updateActiveStream({ assistantMessageId: serverId });
             }
           } else if (event === "token") {
             const chunk =
               payload?.token ?? payload?.delta ?? payload?.content ?? data;
-            s.content += chunk;
-            appendToMessage(chatId, s.msgId, chunk);
+            const nextContent = `${s.content}${chunk}`;
+            appendToMessage(chatId, s.assistantMessageId, chunk);
+            useChatStreamStore
+              .getState()
+              .updateActiveStream({ content: nextContent });
           } else if (event === "complete") {
             const finalMsg =
               typeof payload?.message === "object" ? payload.message : payload;
-            replaceMessage(chatId, s.msgId, {
+            replaceMessage(chatId, s.assistantMessageId, {
               ...baseMsg,
-              id: finalMsg.id ?? s.msgId,
+              id: finalMsg.id ?? s.assistantMessageId,
               content: finalMsg.content ?? s.content,
               createdAt: finalMsg.createdAt ?? now,
               modelId: finalMsg.modelId,
               modelName: finalMsg.modelName,
               status: "complete",
             });
-            updateMessage(chatId, s.userMsgId, { status: "complete" });
+            updateMessage(chatId, s.userMessageId, { status: "complete" });
             break;
           } else if (event === "error") {
             throw new Error(
@@ -184,17 +204,22 @@ export function useChatStream() {
           }
         }
 
+        if (abort.signal.aborted) return;
+
         markChatMessagesComplete(chatId);
         await Promise.all([
           qc.invalidateQueries({ queryKey: chatQueryKey(chatId) }),
           qc.invalidateQueries({ queryKey: chatsQueryKey }),
         ]);
       } catch (err: unknown) {
-        if (err instanceof Error && err.name === "AbortError") return;
+        if (abort.signal.aborted || (err instanceof Error && err.name === "AbortError")) {
+          return;
+        }
+
         const message = err instanceof Error ? err.message : "Stream failed";
-        const s = streamRef.current;
+        const s = useChatStreamStore.getState().activeStream;
         if (s) {
-          updateMessage(chatId, s.msgId, {
+          updateMessage(chatId, s.assistantMessageId, {
             content: s.content || "Couldn't finish response. Try again.",
             error: message,
             status: "error",
@@ -202,7 +227,7 @@ export function useChatStream() {
         }
         toast.error(message);
       } finally {
-        stopStreaming();
+        clearActiveStreamConnection();
       }
     },
     [
@@ -211,7 +236,6 @@ export function useChatStream() {
       markChatMessagesComplete,
       qc,
       replaceMessage,
-      stopStreaming,
       updateMessage,
     ],
   );

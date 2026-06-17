@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { type ReactNode } from "react";
 import { useChatStream, parseSSE, readSSE } from "../useChatStream";
+import { useChatStreamStore } from "../../store/useChatStreamStore";
 
 // --- Mocks ---
 // 1. Define mocks using vi.hoisted so they are available to vi.mock factories
@@ -50,6 +51,29 @@ function mockStream(chunks: string[]) {
   });
 }
 
+function mockAbortableStream(chunks: string[]) {
+  const encoder = new TextEncoder();
+
+  vi.mocked(fetch).mockImplementation((_, init) => {
+    const signal = (init as RequestInit).signal;
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)));
+
+        signal?.addEventListener("abort", () => {
+          controller.error(new DOMException("Aborted", "AbortError"));
+        });
+      },
+    });
+
+    return Promise.resolve({
+      ok: true,
+      body: stream,
+    } as unknown as Response);
+  });
+}
+
 describe("parseSSE", () => {
   it("parses standard event and data", () => {
     expect(parseSSE('event: token\ndata: {"token": "hi"}')).toEqual({
@@ -93,11 +117,13 @@ describe("readSSE", () => {
 describe("useChatStream", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useChatStreamStore.getState().clearActiveStream();
     vi.stubGlobal("fetch", vi.fn());
     vi.stubGlobal("crypto", { randomUUID: () => "test-uuid" });
   });
 
   afterEach(() => {
+    useChatStreamStore.getState().clearActiveStream();
     vi.unstubAllGlobals();
   });
 
@@ -192,6 +218,51 @@ describe("useChatStream", () => {
           error: "Rate limit exceeded",
         }),
       ),
+    );
+  });
+
+  it("should abort the active stream and keep the partial assistant message", async () => {
+    mockAbortableStream([
+      'event: start\ndata: {"assistantMessageId": "server-123"}\n\n',
+      'event: token\ndata: {"token": "Partial response"}\n\n',
+    ]);
+
+    const { result } = renderHook(() => useChatStream(), {
+      wrapper: createWrapper(),
+    });
+
+    let sendPromise: Promise<void>;
+
+    act(() => {
+      sendPromise = result.current.sendMessage({
+        chatId: "chat-1",
+        content: "Hi",
+        model: "gpt-4",
+      });
+    });
+
+    await waitFor(() =>
+      expect(storeMocks.appendToMessage).toHaveBeenCalledWith(
+        "chat-1",
+        "server-123",
+        "Partial response",
+      ),
+    );
+
+    expect(result.current.isStreaming).toBe(true);
+
+    act(() => {
+      result.current.stopStreaming();
+    });
+
+    await sendPromise!;
+
+    expect(result.current.isStreaming).toBe(false);
+    expect(storeMocks.markChatMessagesComplete).toHaveBeenCalledWith("chat-1");
+    expect(storeMocks.updateMessage).not.toHaveBeenCalledWith(
+      "chat-1",
+      "server-123",
+      expect.objectContaining({ status: "error" }),
     );
   });
 });
