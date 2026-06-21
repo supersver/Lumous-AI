@@ -69,6 +69,19 @@ export interface StreamMessageInput {
   model: string;
 }
 
+export interface ActiveChatStream {
+  chatId: string;
+  assistantMessageId: string;
+  userMessageId: string;
+  content: string;
+}
+
+export interface ChatStreamControls {
+  sendMessage: (input: StreamMessageInput) => Promise<void>;
+  isStreaming: boolean;
+  stopStreaming: () => void;
+}
+
 export type ChatStreamEventType = "start" | "token" | "complete" | "error";
 
 export interface ChatStreamStartPayload {

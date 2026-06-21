@@ -18,7 +18,11 @@ export function ChatLayout() {
   );
 
   const { createSession } = useChatSessions();
-  const { sendMessage: streamMessage, isStreaming } = useChatStream();
+  const {
+    sendMessage: streamMessage,
+    isStreaming,
+    stopStreaming,
+  } = useChatStream();
 
   const canSend = draft.trim().length > 0 && !isStreaming;
 
@@ -61,6 +65,7 @@ export function ChatLayout() {
         selectedModelName={selectedModel?.name}
         onDraftChange={setDraft}
         onSend={handleSend}
+        onStopStreaming={stopStreaming}
       />
     </Box>
   );

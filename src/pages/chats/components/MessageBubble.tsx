@@ -1,4 +1,5 @@
 import { Avatar, Box, Chip, Paper, Stack, Typography } from "@mui/material";
+import { memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import logo from "@/assets/logo.svg";
@@ -33,10 +34,14 @@ const StreamingCursor = ({ hasContent }: { hasContent: boolean }) => (
   />
 );
 
-export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({
+  message,
+  userInitial,
+}: MessageBubbleProps) {
   const isUser = message.role === "user";
   const isStreaming = message.status === "streaming";
   const isError = message.status === "error";
+  const shouldRenderMarkdown = !isUser && !isStreaming && !isError;
 
   return (
     <Stack
@@ -115,7 +120,6 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
           }}
         >
           {isUser ? (
-            // Plain text for user — preserve newlines
             <Typography
               component="div"
               variant="body2"
@@ -126,8 +130,7 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
                 <StreamingCursor hasContent={Boolean(message.content)} />
               )}
             </Typography>
-          ) : (
-            // Full markdown for assistant
+          ) : shouldRenderMarkdown ? (
             <Typography
               component="div"
               variant="body2"
@@ -139,6 +142,17 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
               >
                 {message.content}
               </Markdown>
+              {isStreaming && (
+                <StreamingCursor hasContent={Boolean(message.content)} />
+              )}
+            </Typography>
+          ) : (
+            <Typography
+              component="div"
+              variant="body2"
+              sx={{ whiteSpace: "pre-wrap", lineHeight: 1.75 }}
+            >
+              {message.content}
               {isStreaming && (
                 <StreamingCursor hasContent={Boolean(message.content)} />
               )}
@@ -158,4 +172,4 @@ export function MessageBubble({ message, userInitial }: MessageBubbleProps) {
       </Box>
     </Stack>
   );
-}
+});

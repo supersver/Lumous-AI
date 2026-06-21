@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { useShallow } from "zustand/react/shallow";
 
@@ -8,11 +8,27 @@ import { auth } from "@/lib/firebase";
 import { chatQueryKey } from "../api/getChat";
 import { chatsQueryKey } from "../api/getChats";
 import { useChatMessagesStore } from "../store/useChatMessagesStore";
-import type { ChatMessage, SSEPayload, StreamMessageInput } from "../types";
+import { useChatStreamStore } from "../store/useChatStreamStore";
+import type {
+  ChatMessage,
+  ChatStreamControls,
+  SSEPayload,
+  StreamMessageInput,
+} from "../types";
 
 const uid = (p: string) => `${p}-${crypto.randomUUID()}`;
 const streamUrl = (id: string) =>
   `${API_URL?.replace(/\/$/, "")}/chats/${encodeURIComponent(id)}/messages/stream`;
+const TOKEN_FLUSH_INTERVAL_MS = 40;
+
+let activeAbortController: AbortController | null = null;
+let activeStreamCleanup: (() => void) | null = null;
+
+const clearActiveStreamConnection = () => {
+  activeAbortController = null;
+  activeStreamCleanup = null;
+  useChatStreamStore.getState().clearActiveStream();
+};
 
 export const parseSSE = (raw: string) => {
   let event = "message",
@@ -25,41 +41,54 @@ export const parseSSE = (raw: string) => {
   return data || event !== "message" ? { event, data } : null;
 };
 
-export async function* readSSE(body: ReadableStream<Uint8Array>) {
+export async function* readSSE(
+  body: ReadableStream<Uint8Array>,
+  signal?: AbortSignal,
+) {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buf = "";
+  const cancelReader = () => {
+    void reader.cancel().catch(() => undefined);
+  };
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  signal?.addEventListener("abort", cancelReader, { once: true });
 
-    buf += decoder.decode(value, { stream: true });
-    const parts = buf.split(/\r?\n\r?\n/);
-    buf = parts.pop() || "";
+  try {
+    while (!signal?.aborted) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    for (const part of parts) {
-      const parsed = parseSSE(part);
+      buf += decoder.decode(value, { stream: true });
+      const parts = buf.split(/\r?\n\r?\n/);
+      buf = parts.pop() || "";
+
+      for (const part of parts) {
+        const parsed = parseSSE(part);
+        if (parsed) yield parsed;
+      }
+    }
+
+    if (!signal?.aborted && buf) {
+      const parsed = parseSSE(buf);
       if (parsed) yield parsed;
     }
-  }
-
-  if (buf) {
-    const parsed = parseSSE(buf);
-    if (parsed) yield parsed;
+  } finally {
+    signal?.removeEventListener("abort", cancelReader);
+    try {
+      reader.releaseLock();
+    } catch {
+      // The browser may have already released the reader after abort/cancel.
+    }
   }
 }
 
-export function useChatStream() {
+export function useChatStream(): ChatStreamControls {
   const qc = useQueryClient();
-  const [isStreaming, setIsStreaming] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
-  const streamRef = useRef<{
-    chatId: string;
-    msgId: string;
-    userMsgId: string;
-    content: string;
-  } | null>(null);
+  const isStreaming = useChatStreamStore((state) => state.isStreaming);
+  const tokenBufferRef = useRef<string[]>([]);
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const streamedContentRef = useRef("");
 
   const {
     addMessage,
@@ -77,20 +106,87 @@ export function useChatStream() {
     })),
   );
 
-  const stopStreaming = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    streamRef.current = null;
-    setIsStreaming(false);
+  const clearFlushTimer = useCallback(() => {
+    if (flushTimerRef.current) {
+      clearTimeout(flushTimerRef.current);
+      flushTimerRef.current = null;
+    }
   }, []);
+
+  const resetStreamingBuffer = useCallback(() => {
+    clearFlushTimer();
+    tokenBufferRef.current = [];
+    streamedContentRef.current = "";
+  }, [clearFlushTimer]);
+
+  const flushBufferedTokens = useCallback(() => {
+    clearFlushTimer();
+
+    const chunk = tokenBufferRef.current.join("");
+    tokenBufferRef.current = [];
+
+    if (!chunk) {
+      return;
+    }
+
+    const activeStream = useChatStreamStore.getState().activeStream;
+    if (!activeStream) {
+      return;
+    }
+
+    streamedContentRef.current += chunk;
+    appendToMessage(
+      activeStream.chatId,
+      activeStream.assistantMessageId,
+      chunk,
+    );
+    useChatStreamStore
+      .getState()
+      .updateActiveStream({ content: streamedContentRef.current });
+  }, [appendToMessage, clearFlushTimer]);
+
+  const scheduleTokenFlush = useCallback(() => {
+    if (flushTimerRef.current) {
+      return;
+    }
+
+    flushTimerRef.current = setTimeout(
+      flushBufferedTokens,
+      TOKEN_FLUSH_INTERVAL_MS,
+    );
+  }, [flushBufferedTokens]);
+
+  const stopStreaming = useCallback(() => {
+    const activeStream = useChatStreamStore.getState().activeStream;
+
+    activeStreamCleanup?.();
+    resetStreamingBuffer();
+    activeAbortController?.abort();
+
+    if (activeStream) {
+      markChatMessagesComplete(activeStream.chatId);
+    }
+
+    clearActiveStreamConnection();
+  }, [markChatMessagesComplete, resetStreamingBuffer]);
 
   const sendMessage = useCallback(
     async ({ chatId, content, model }: StreamMessageInput) => {
-      if (!chatId || !content.trim() || streamRef.current) {
-        if (streamRef.current) toast.info("Already streaming.");
+      const streamStore = useChatStreamStore.getState();
+
+      if (
+        !chatId ||
+        !content.trim() ||
+        streamStore.activeStream ||
+        activeAbortController
+      ) {
+        if (streamStore.activeStream || activeAbortController) {
+          toast.info("Already streaming.");
+        }
         return;
       }
 
+      resetStreamingBuffer();
       const now = new Date().toISOString();
       const userMsgId = uid("user");
       const assistantMsgId = uid("assistant");
@@ -112,14 +208,14 @@ export function useChatStream() {
       addMessage(chatId, baseMsg);
 
       const abort = new AbortController();
-      abortRef.current = abort;
-      streamRef.current = {
+      activeAbortController = abort;
+      activeStreamCleanup = resetStreamingBuffer;
+      streamStore.startStream({
         chatId,
-        msgId: assistantMsgId,
-        userMsgId,
+        assistantMessageId: assistantMsgId,
+        userMessageId: userMsgId,
         content: "",
-      };
-      setIsStreaming(true);
+      });
 
       try {
         const token = await auth.currentUser?.getIdToken(true);
@@ -136,8 +232,8 @@ export function useChatStream() {
         if (!res.ok || !res.body)
           throw new Error(`Stream failed (${res.status})`);
 
-        for await (const { event, data } of readSSE(res.body)) {
-          const s = streamRef.current;
+        for await (const { event, data } of readSSE(res.body, abort.signal)) {
+          const s = useChatStreamStore.getState().activeStream;
           if (!s) break;
 
           let payload: SSEPayload = {};
@@ -151,27 +247,41 @@ export function useChatStream() {
             const serverId =
               payload?.assistantMessageId ?? payload?.messageId ?? payload?.id;
             if (serverId) {
-              replaceMessage(chatId, s.msgId, { ...baseMsg, id: serverId });
-              s.msgId = serverId;
+              flushBufferedTokens();
+              replaceMessage(chatId, s.assistantMessageId, {
+                ...baseMsg,
+                id: serverId,
+                content: streamedContentRef.current,
+                status: "streaming",
+              });
+              useChatStreamStore
+                .getState()
+                .updateActiveStream({
+                  assistantMessageId: serverId,
+                  content: streamedContentRef.current,
+                });
             }
           } else if (event === "token") {
             const chunk =
               payload?.token ?? payload?.delta ?? payload?.content ?? data;
-            s.content += chunk;
-            appendToMessage(chatId, s.msgId, chunk);
+            if (chunk) {
+              tokenBufferRef.current.push(chunk);
+              scheduleTokenFlush();
+            }
           } else if (event === "complete") {
+            flushBufferedTokens();
             const finalMsg =
               typeof payload?.message === "object" ? payload.message : payload;
-            replaceMessage(chatId, s.msgId, {
+            replaceMessage(chatId, s.assistantMessageId, {
               ...baseMsg,
-              id: finalMsg.id ?? s.msgId,
-              content: finalMsg.content ?? s.content,
+              id: finalMsg.id ?? s.assistantMessageId,
+              content: finalMsg.content ?? streamedContentRef.current,
               createdAt: finalMsg.createdAt ?? now,
               modelId: finalMsg.modelId,
               modelName: finalMsg.modelName,
               status: "complete",
             });
-            updateMessage(chatId, s.userMsgId, { status: "complete" });
+            updateMessage(chatId, s.userMessageId, { status: "complete" });
             break;
           } else if (event === "error") {
             throw new Error(
@@ -184,34 +294,43 @@ export function useChatStream() {
           }
         }
 
+        if (abort.signal.aborted) return;
+
         markChatMessagesComplete(chatId);
         await Promise.all([
           qc.invalidateQueries({ queryKey: chatQueryKey(chatId) }),
           qc.invalidateQueries({ queryKey: chatsQueryKey }),
         ]);
       } catch (err: unknown) {
-        if (err instanceof Error && err.name === "AbortError") return;
+        if (abort.signal.aborted || (err instanceof Error && err.name === "AbortError")) {
+          return;
+        }
+
         const message = err instanceof Error ? err.message : "Stream failed";
-        const s = streamRef.current;
+        flushBufferedTokens();
+        const s = useChatStreamStore.getState().activeStream;
         if (s) {
-          updateMessage(chatId, s.msgId, {
-            content: s.content || "Couldn't finish response. Try again.",
+          updateMessage(chatId, s.assistantMessageId, {
+            content:
+              streamedContentRef.current || "Couldn't finish response. Try again.",
             error: message,
             status: "error",
           });
         }
         toast.error(message);
       } finally {
-        stopStreaming();
+        resetStreamingBuffer();
+        clearActiveStreamConnection();
       }
     },
     [
       addMessage,
-      appendToMessage,
+      flushBufferedTokens,
       markChatMessagesComplete,
       qc,
       replaceMessage,
-      stopStreaming,
+      resetStreamingBuffer,
+      scheduleTokenFlush,
       updateMessage,
     ],
   );

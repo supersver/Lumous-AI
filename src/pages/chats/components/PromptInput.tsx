@@ -6,7 +6,11 @@ import {
   InputBase,
   Typography,
 } from "@mui/material";
-import { ArrowUpRightIcon, PaperPlaneTiltIcon } from "@phosphor-icons/react";
+import {
+  ArrowUpRightIcon,
+  PaperPlaneTiltIcon,
+  StopIcon,
+} from "@phosphor-icons/react";
 import { useEffect, useMemo, type KeyboardEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 
@@ -22,6 +26,7 @@ interface PromptInputProps {
   selectedModelName?: string;
   onDraftChange: (draft: string) => void;
   onSend: () => void;
+  onStopStreaming: () => void;
 }
 
 export function PromptInput({
@@ -31,6 +36,7 @@ export function PromptInput({
   selectedModelName,
   onDraftChange,
   onSend,
+  onStopStreaming,
 }: PromptInputProps) {
   const modelsQuery = useGetModels();
   const navigate = useNavigate();
@@ -143,11 +149,13 @@ export function PromptInput({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
             mt: "auto",
           }}
         >
           {/* Left Side: Model Selector */}
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", minWidth: 0 }}>
             {modelsQuery.isLoading ? (
               <Box sx={{ px: 2, py: 1 }}>
                 <CircularProgress size={16} />
@@ -164,25 +172,54 @@ export function PromptInput({
             )}
           </Box>
 
-          {/* Right Side: Send Button */}
-          <IconButton
-            type="submit"
-            disabled={!canSend || models.length === 0}
-            aria-label="Send prompt"
+          {/* Right Side: Stop / Send controls */}
+          <Box
             sx={{
-              width: 40,
-              height: 40,
-              bgcolor: canSend ? "text.primary" : "action.disabledBackground",
-              color: canSend ? "background.default" : "text.disabled",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                bgcolor: canSend ? "text.primary" : undefined,
-                opacity: 0.8,
-              },
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              flexShrink: 0,
+              ml: "auto",
             }}
           >
-            <PaperPlaneTiltIcon size={18} weight="fill" />
-          </IconButton>
+            {isSending ? (
+              <IconButton
+                aria-label="Stop generation"
+                disabled={!isSending}
+                onClick={onStopStreaming}
+                sx={{
+                  minHeight: 36,
+                  borderColor: "divider",
+                  color: "text.primary",
+                  whiteSpace: "nowrap",
+                  border: 0.5,
+                }}
+              >
+                <StopIcon size={17} weight="fill" />
+              </IconButton>
+            ) : (
+              <IconButton
+                type="submit"
+                disabled={!canSend || models.length === 0}
+                aria-label="Send prompt"
+                sx={{
+                  width: 40,
+                  height: 40,
+                  bgcolor: canSend
+                    ? "text.primary"
+                    : "action.disabledBackground",
+                  color: canSend ? "background.default" : "text.disabled",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    bgcolor: canSend ? "text.primary" : undefined,
+                    opacity: 0.8,
+                  },
+                }}
+              >
+                <PaperPlaneTiltIcon size={18} weight="fill" />
+              </IconButton>
+            )}
+          </Box>
         </Box>
       </Box>
       <Typography
