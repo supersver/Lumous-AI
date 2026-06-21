@@ -7,6 +7,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { useChatSessions } from "../context/ChatSessionsContext";
 import { useChatStream } from "../hooks/useChatStream";
 import { PromptInput } from "../components/PromptInput";
+import { useChatSettingsStore } from "../store/useChatSettingsStore";
 
 export function ChatLayout() {
   const navigate = useNavigate();
@@ -18,6 +19,12 @@ export function ChatLayout() {
   );
 
   const { createSession } = useChatSessions();
+  const { getSettingsForChat, setChatSettings } = useChatSettingsStore(
+    useShallow((state) => ({
+      getSettingsForChat: state.getSettingsForChat,
+      setChatSettings: state.setChatSettings,
+    })),
+  );
   const {
     sendMessage: streamMessage,
     isStreaming,
@@ -30,12 +37,14 @@ export function ChatLayout() {
     if (!draft.trim() || isStreaming) return;
 
     const content = draft.trim();
+    const chatSettings = getSettingsForChat(chatId);
     setDraft("");
 
     // If on index route, create a session first then navigate
     let activeChatId = chatId;
     if (!activeChatId) {
       activeChatId = await createSession(selectedModel?.id ?? "");
+      setChatSettings(activeChatId, chatSettings);
       navigate(`/chat/${activeChatId}`);
     }
 
@@ -43,6 +52,8 @@ export function ChatLayout() {
       chatId: activeChatId,
       content,
       model: selectedModel?.id ?? "",
+      webSearch: chatSettings.webSearch,
+      reasoning: chatSettings.reasoning,
     });
   };
 
@@ -51,22 +62,36 @@ export function ChatLayout() {
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "100%",
+        height: "100dvh",
         minHeight: 0,
         bgcolor: "background.default",
         color: "text.primary",
       }}
     >
-      <Outlet />
-      <PromptInput
-        canSend={canSend}
-        draft={draft}
-        isSending={isStreaming}
-        selectedModelName={selectedModel?.name}
-        onDraftChange={setDraft}
-        onSend={handleSend}
-        onStopStreaming={stopStreaming}
-      />
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          overflowX: "hidden",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <Outlet />
+      </Box>
+
+      <Box sx={{ flexShrink: 0 }}>
+        <PromptInput
+          activeChatId={chatId}
+          canSend={canSend}
+          draft={draft}
+          isSending={isStreaming}
+          selectedModelName={selectedModel?.name}
+          onDraftChange={setDraft}
+          onSend={handleSend}
+          onStopStreaming={stopStreaming}
+        />
+      </Box>
     </Box>
   );
 }

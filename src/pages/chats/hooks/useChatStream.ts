@@ -171,7 +171,13 @@ export function useChatStream(): ChatStreamControls {
   }, [markChatMessagesComplete, resetStreamingBuffer]);
 
   const sendMessage = useCallback(
-    async ({ chatId, content, model }: StreamMessageInput) => {
+    async ({
+      chatId,
+      content,
+      model,
+      webSearch,
+      reasoning,
+    }: StreamMessageInput) => {
       const streamStore = useChatStreamStore.getState();
 
       if (
@@ -195,6 +201,8 @@ export function useChatStream(): ChatStreamControls {
         role: "assistant",
         content: "",
         createdAt: now,
+        webSearch,
+        reasoning,
         status: "streaming",
       };
 
@@ -225,7 +233,12 @@ export function useChatStream(): ChatStreamControls {
             "Content-Type": "application/json",
             ...(token && { Authorization: `Bearer ${token}` }),
           },
-          body: JSON.stringify({ content: content.trim(), model }),
+          body: JSON.stringify({
+            content: content.trim(),
+            model,
+            webSearch,
+            reasoning,
+          }),
           signal: abort.signal,
         });
 
@@ -279,6 +292,8 @@ export function useChatStream(): ChatStreamControls {
               createdAt: finalMsg.createdAt ?? now,
               modelId: finalMsg.modelId,
               modelName: finalMsg.modelName,
+              webSearch: finalMsg.webSearch ?? webSearch,
+              reasoning: finalMsg.reasoning ?? reasoning,
               status: "complete",
             });
             updateMessage(chatId, s.userMessageId, { status: "complete" });

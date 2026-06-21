@@ -5,8 +5,7 @@ export function ChatIndexRedirect() {
     <Box
       sx={{
         display: "flex",
-        flex: 1,
-        minHeight: 0,
+        minHeight: "100%",
         alignItems: "center",
         justifyContent: "center",
         px: 3,
