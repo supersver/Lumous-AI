@@ -169,12 +169,7 @@ describe("useChatStream", () => {
     expect(storeMocks.appendToMessage).toHaveBeenCalledWith(
       "chat-1",
       "server-123",
-      "Hello",
-    );
-    expect(storeMocks.appendToMessage).toHaveBeenCalledWith(
-      "chat-1",
-      "server-123",
-      " world",
+      "Hello world",
     );
     expect(storeMocks.replaceMessage).toHaveBeenCalledWith(
       "chat-1",

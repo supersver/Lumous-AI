@@ -7,6 +7,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { MessagesArea } from "../components/MessagesArea";
 import { useChatSessions } from "../context/ChatSessionsContext";
 import { useChatStream } from "../hooks/useChatStream";
+import { useChatStreamStore } from "../store/useChatStreamStore";
 
 export function Chats() {
   const { id: chatId } = useParams<{ id: string }>();
@@ -16,14 +17,20 @@ export function Chats() {
     })),
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { isStreaming } = useChatStream();
+  const { isStreaming, stopStreaming } = useChatStream();
   const { activeSession, activeSessionId, selectSession } = useChatSessions();
 
   useEffect(() => {
+    const activeStream = useChatStreamStore.getState().activeStream;
+
+    if (activeStream && chatId && activeStream.chatId !== chatId) {
+      stopStreaming();
+    }
+
     if (chatId && activeSessionId !== chatId) {
       selectSession(chatId);
     }
-  }, [chatId, selectSession, activeSessionId]);
+  }, [chatId, selectSession, activeSessionId, stopStreaming]);
 
   const lastMessage = activeSession?.messages.at(-1);
 

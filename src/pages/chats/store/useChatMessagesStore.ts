@@ -110,19 +110,29 @@ export const useChatMessagesStore = create<ChatMessagesState>((set) => ({
         return state;
       }
 
+      let changed = false;
+      const nextMessages = Object.entries(currentMessages).reduce<MessagesById>(
+        (messagesById, [messageId, message]) => {
+          const nextStatus = message.status === "error" ? "error" : "complete";
+
+          messagesById[messageId] =
+            message.status === nextStatus
+              ? message
+              : { ...message, status: nextStatus };
+          changed = changed || messagesById[messageId] !== message;
+          return messagesById;
+        },
+        {},
+      );
+
+      if (!changed) {
+        return state;
+      }
+
       return {
         messagesByChatId: {
           ...state.messagesByChatId,
-          [chatId]: Object.entries(currentMessages).reduce<MessagesById>(
-            (messagesById, [messageId, message]) => {
-              messagesById[messageId] = {
-                ...message,
-                status: message.status === "error" ? "error" : "complete",
-              };
-              return messagesById;
-            },
-            {},
-          ),
+          [chatId]: nextMessages,
         },
       };
     }),
