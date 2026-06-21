@@ -7,7 +7,12 @@ export const sendMessage = async (
 ): Promise<SendMessageResponse> => {
   const res = await axios.post<SendMessageResponse>(
     `/chats/${input.chatId}/messages`,
-    { content: input.content, model: input.model },
+    {
+      content: input.content,
+      model: input.model,
+      webSearch: input.webSearch,
+      reasoning: input.reasoning,
+    },
   );
   return res.data;
 };

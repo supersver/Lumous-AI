@@ -149,6 +149,8 @@ describe("useChatStream", () => {
         chatId: "chat-1",
         content: "Hi",
         model: "gpt-4",
+        webSearch: true,
+        reasoning: true,
       });
     });
 
@@ -201,6 +203,8 @@ describe("useChatStream", () => {
         chatId: "chat-1",
         content: "Hi",
         model: "gpt-4",
+        webSearch: false,
+        reasoning: true,
       });
     });
 
@@ -233,6 +237,8 @@ describe("useChatStream", () => {
         chatId: "chat-1",
         content: "Hi",
         model: "gpt-4",
+        webSearch: false,
+        reasoning: false,
       });
     });
 

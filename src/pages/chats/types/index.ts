@@ -10,11 +10,13 @@ export interface ChatMessage {
   role: ChatRole;
   content: string;
   createdAt: string;
-  totalTokens: number;
-  promptTokens: number;
-  completionTokens: number;
+  totalTokens?: number;
+  promptTokens?: number;
+  completionTokens?: number;
   modelId?: string;
   modelName?: string;
+  webSearch?: boolean;
+  reasoning?: boolean;
   status?: ChatMessageStatus;
   error?: string;
 }
@@ -40,6 +42,8 @@ export interface SendMessageInput {
   chatId: string;
   content: string;
   model: string;
+  webSearch: boolean;
+  reasoning: boolean;
 }
 
 export interface SendMessageResponseMessage {
@@ -70,6 +74,13 @@ export interface StreamMessageInput {
   chatId: string;
   content: string;
   model: string;
+  webSearch: boolean;
+  reasoning: boolean;
+}
+
+export interface ChatSettings {
+  webSearch: boolean;
+  reasoning: boolean;
 }
 
 export interface ActiveChatStream {
@@ -121,6 +132,8 @@ export type SSEPayload = {
   createdAt?: string;
   modelId?: string;
   modelName?: string;
+  webSearch?: boolean;
+  reasoning?: boolean;
   message?:
     | {
         id?: string;
@@ -128,6 +141,8 @@ export type SSEPayload = {
         createdAt?: string;
         modelId?: string;
         modelName?: string;
+        webSearch?: boolean;
+        reasoning?: boolean;
       }
     | string;
   error?: string;

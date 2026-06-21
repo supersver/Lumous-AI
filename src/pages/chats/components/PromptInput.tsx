@@ -15,11 +15,17 @@ import { useEffect, useMemo, type KeyboardEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { ModelSelector } from "./ModelSelector";
+import { ChatControls } from "./ChatControls";
 import { useGetModels } from "../api/getModels";
 import { useAppStore } from "@/store/useAppStore";
+import {
+  defaultChatSettings,
+  useChatSettingsStore,
+} from "../store/useChatSettingsStore";
 import { useNavigate } from "react-router-dom";
 
 interface PromptInputProps {
+  activeChatId?: string;
   canSend: boolean;
   draft: string;
   isSending?: boolean;
@@ -30,6 +36,7 @@ interface PromptInputProps {
 }
 
 export function PromptInput({
+  activeChatId,
   canSend,
   draft,
   isSending = false,
@@ -45,6 +52,14 @@ export function PromptInput({
     useShallow((state) => ({
       selectedModel: state.selectedModel,
       setSelectedModel: state.setSelectedModel,
+    })),
+  );
+  const { chatSettings, updateChatSettings } = useChatSettingsStore(
+    useShallow((state) => ({
+      chatSettings: activeChatId
+        ? (state.settingsByChatId[activeChatId] ?? defaultChatSettings)
+        : state.draftSettings,
+      updateChatSettings: state.updateChatSettings,
     })),
   );
 
@@ -154,8 +169,16 @@ export function PromptInput({
             mt: "auto",
           }}
         >
-          {/* Left Side: Model Selector */}
-          <Box sx={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+          {/* Left Side: Model Selector + chat controls */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              minWidth: 0,
+              flexWrap: "wrap",
+              gap: 1,
+            }}
+          >
             {modelsQuery.isLoading ? (
               <Box sx={{ px: 2, py: 1 }}>
                 <CircularProgress size={16} />
@@ -170,6 +193,13 @@ export function PromptInput({
                 onModelChange={setSelectedModel}
               />
             )}
+            <ChatControls
+              disabled={isSending}
+              settings={chatSettings}
+              onSettingsChange={(patch) =>
+                updateChatSettings(activeChatId, patch)
+              }
+            />
           </Box>
 
           {/* Right Side: Stop / Send controls */}

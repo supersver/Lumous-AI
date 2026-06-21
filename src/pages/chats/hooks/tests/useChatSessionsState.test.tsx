@@ -176,6 +176,8 @@ describe("useChatSessionsState", () => {
       chatId: "chat-1",
       content: "Hello",
       model: "gpt-4",
+      webSearch: false,
+      reasoning: false,
     });
 
     expect(queryClient.invalidateQueries).toHaveBeenCalled();
@@ -221,6 +223,8 @@ describe("useChatSessionsState", () => {
       chatId: "new-chat",
       content: "Hello",
       model: "gpt-4",
+      webSearch: false,
+      reasoning: false,
     });
   });
 

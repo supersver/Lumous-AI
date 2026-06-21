@@ -1,4 +1,4 @@
-import { Box, Paper, Stack, Typography } from "@mui/material";
+import { Box, Chip, Paper, Stack, Typography } from "@mui/material";
 import { memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -71,6 +71,18 @@ export const MessageBubble = memo(function MessageBubble({
               Prompt Tokens: {message.promptTokens}↑ | Completion Tokens:{" "}
               {message.completionTokens}↓
             </Typography>
+          )}
+          {!isUser && message.reasoning && (
+            <Chip
+              label="Reasoning"
+              size="small"
+              variant="outlined"
+              sx={{
+                borderColor: "secondary.light",
+                color: "secondary.light",
+                bgcolor: "rgba(34, 211, 238, 0.08)",
+              }}
+            />
           )}
         </Stack>
 

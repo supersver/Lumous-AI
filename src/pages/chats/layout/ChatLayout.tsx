@@ -7,6 +7,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { useChatSessions } from "../context/ChatSessionsContext";
 import { useChatStream } from "../hooks/useChatStream";
 import { PromptInput } from "../components/PromptInput";
+import { useChatSettingsStore } from "../store/useChatSettingsStore";
 
 export function ChatLayout() {
   const navigate = useNavigate();
@@ -18,6 +19,12 @@ export function ChatLayout() {
   );
 
   const { createSession } = useChatSessions();
+  const { getSettingsForChat, setChatSettings } = useChatSettingsStore(
+    useShallow((state) => ({
+      getSettingsForChat: state.getSettingsForChat,
+      setChatSettings: state.setChatSettings,
+    })),
+  );
   const {
     sendMessage: streamMessage,
     isStreaming,
@@ -30,12 +37,14 @@ export function ChatLayout() {
     if (!draft.trim() || isStreaming) return;
 
     const content = draft.trim();
+    const chatSettings = getSettingsForChat(chatId);
     setDraft("");
 
     // If on index route, create a session first then navigate
     let activeChatId = chatId;
     if (!activeChatId) {
       activeChatId = await createSession(selectedModel?.id ?? "");
+      setChatSettings(activeChatId, chatSettings);
       navigate(`/chat/${activeChatId}`);
     }
 
@@ -43,6 +52,8 @@ export function ChatLayout() {
       chatId: activeChatId,
       content,
       model: selectedModel?.id ?? "",
+      webSearch: chatSettings.webSearch,
+      reasoning: chatSettings.reasoning,
     });
   };
 
@@ -71,6 +82,7 @@ export function ChatLayout() {
 
       <Box sx={{ flexShrink: 0 }}>
         <PromptInput
+          activeChatId={chatId}
           canSend={canSend}
           draft={draft}
           isSending={isStreaming}

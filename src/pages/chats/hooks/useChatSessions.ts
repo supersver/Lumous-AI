@@ -138,6 +138,8 @@ export function useChatSessionsState() {
         chatId,
         content: trimmedContent,
         model: model?.id ?? "",
+        webSearch: false,
+        reasoning: false,
       });
 
       await queryClient.invalidateQueries({ queryKey: chatsQueryKey });
