@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -12,7 +12,7 @@ import {
   Autocomplete,
   InputAdornment,
 } from "@mui/material";
-import { CaretDown, MagnifyingGlass } from "@phosphor-icons/react";
+import { CaretDown, Check, MagnifyingGlass } from "@phosphor-icons/react";
 
 import type { SelectedModel } from "@/store/useAppStore";
 import type { Model } from "../api/getModels";
@@ -51,6 +51,12 @@ const ALL_PROVIDERS: ProviderOption = { label: "All Providers", slug: null };
 const numberFormatter = new Intl.NumberFormat();
 const formatContextLength = (n: number) => numberFormatter.format(n);
 
+// inputPrice/outputPrice are USD per single token — scale to a per-1M-token rate for display
+const formatPricePerMillion = (pricePerToken: number) => {
+  const perMillion = pricePerToken * 1_000_000;
+  return `$${perMillion % 1 === 0 ? perMillion.toFixed(0) : perMillion.toFixed(2)}`;
+};
+
 // Shared dark input styles for TextField / Autocomplete
 const darkInputSx = {
   "& .MuiOutlinedInput-root": {
@@ -68,6 +74,41 @@ const darkInputSx = {
   },
   // Autocomplete clear + popup icons
   "& .MuiSvgIcon-root": { color: "rgba(255,255,255,0.4)" },
+};
+
+const tagChipSx = {
+  bgcolor: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  color: "rgba(255,255,255,0.6)",
+  fontSize: "0.6875rem",
+  height: 22,
+};
+
+const priceChipSx = {
+  bgcolor: "rgba(52, 211, 153, 0.1)",
+  border: "1px solid rgba(52, 211, 153, 0.25)",
+  color: "#34d399",
+  fontSize: "0.6875rem",
+  height: 22,
+  fontWeight: 600,
+};
+
+const freeChipSx = {
+  bgcolor: "rgba(52, 211, 153, 0.1)",
+  border: "1px solid rgba(52, 211, 153, 0.25)",
+  color: "#34d399",
+  fontSize: "0.6875rem",
+  height: 22,
+  fontWeight: 600,
+};
+
+const reasoningChipSx = {
+  bgcolor: "rgba(129, 140, 248, 0.12)",
+  border: "1px solid rgba(129, 140, 248, 0.3)",
+  color: "#818cf8",
+  fontSize: "0.6875rem",
+  height: 22,
+  fontWeight: 600,
 };
 
 export function ModelSelector({
@@ -88,6 +129,7 @@ export function ModelSelector({
     null,
   );
   const [modelSearch, setModelSearch] = useState("");
+  const selectedItemRef = useRef<HTMLDivElement | null>(null);
 
   const providerOptions: ProviderOption[] = useMemo(
     () => [
@@ -117,11 +159,39 @@ export function ModelSelector({
     [models, selectedModel?.id],
   );
 
+  // The model currently highlighted inside the modal (drives the details panel)
+  const detailModel = useMemo(
+    () => models.find((m) => m.id === tempSelectedModelId) ?? null,
+    [models, tempSelectedModelId],
+  );
+
   const handleOpen = () => {
+    const currentModel = selectedModel
+      ? (models.find((m) => m.id === selectedModel.id) ?? null)
+      : null;
+
     setTempSelectedModelId(selectedModel?.id ?? null);
     setModelSearch("");
+    setActivePricing(
+      currentModel ? (currentModel.isFree ? "free" : "paid") : null,
+    );
+    setActiveProvider(
+      currentModel
+        ? (providerOptions.find((p) => p.slug === currentModel.providerSlug) ??
+            ALL_PROVIDERS)
+        : ALL_PROVIDERS,
+    );
     setIsModalOpen(true);
   };
+
+  // Scroll the currently-selected row into view once the modal (and its filters) have rendered
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const frame = requestAnimationFrame(() => {
+      selectedItemRef.current?.scrollIntoView({ block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isModalOpen]);
 
   const handleClose = () => setIsModalOpen(false);
 
@@ -151,7 +221,7 @@ export function ModelSelector({
     </Typography>
   );
 
-  const modalContent = (
+  const filtersAndList = (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mt: 1 }}>
       {/* Providers — searchable dropdown */}
       <Box>
@@ -270,13 +340,16 @@ export function ModelSelector({
           <List disablePadding>
             {filteredModels.map((model) => {
               const isSelected = tempSelectedModelId === model.id;
+              const isCurrentlyApplied = selectedModel?.id === model.id;
               return (
                 <ListItemButton
                   key={model.id}
+                  ref={isCurrentlyApplied ? selectedItemRef : undefined}
                   onClick={() => setTempSelectedModelId(model.id)}
                   sx={{
                     borderRadius: 1,
                     my: 0.5,
+                    gap: 1,
                     bgcolor: isSelected
                       ? "rgba(255,255,255,0.08)"
                       : "transparent",
@@ -306,6 +379,21 @@ export function ModelSelector({
                       },
                     }}
                   />
+                  {isCurrentlyApplied && (
+                    <Stack
+                      direction="row"
+                      spacing={0.5}
+                      sx={{ alignItems: "center", flexShrink: 0 }}
+                    >
+                      <Check size={14} weight="bold" color="#34d399" />
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#34d399", fontWeight: 600 }}
+                      >
+                        Current
+                      </Typography>
+                    </Stack>
+                  )}
                 </ListItemButton>
               );
             })}
@@ -313,6 +401,140 @@ export function ModelSelector({
         )}
       </Box>
     </Box>
+  );
+
+  const detailsPanel = (
+    <Box
+      sx={{
+        width: 280,
+        flexShrink: 0,
+        pl: 3,
+        ml: 1,
+        mt: 1,
+        borderLeft: "1px solid rgba(255,255,255,0.08)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {detailModel ? (
+        <Stack spacing={1.5}>
+          {/* Name + price + reasoning, all on one line */}
+          <Stack
+            direction="row"
+            spacing={0.75}
+            sx={{ alignItems: "center", flexWrap: "wrap", rowGap: 0.75 }}
+          >
+            <Typography
+              sx={{ fontSize: "0.9375rem", fontWeight: 600, color: "#fff" }}
+            >
+              {detailModel.name}
+            </Typography>
+            {detailModel.isFree ? (
+              <Chip label="Free" size="small" sx={freeChipSx} />
+            ) : (
+              <Chip
+                label={`${formatPricePerMillion(detailModel.inputPrice)}↑ / ${formatPricePerMillion(detailModel.outputPrice)}↓ per 1M`}
+                size="small"
+                sx={priceChipSx}
+              />
+            )}
+            {detailModel.supportsReasoning && (
+              <Chip label="Reasoning" size="small" sx={reasoningChipSx} />
+            )}
+            {selectedModel?.id === detailModel.id && (
+              <Chip
+                icon={<Check size={12} weight="bold" />}
+                label="Selected"
+                size="small"
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.16)",
+                  color: "rgba(255,255,255,0.8)",
+                  fontSize: "0.6875rem",
+                  height: 22,
+                  fontWeight: 600,
+                  "& .MuiChip-icon": { color: "#34d399", ml: "6px" },
+                }}
+              />
+            )}
+          </Stack>
+
+          {/* Provider */}
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+            <Box
+              component="img"
+              src={detailModel.providerLogo}
+              alt=""
+              sx={{ width: 14, height: 14, borderRadius: 0.5 }}
+            />
+            <Typography
+              variant="caption"
+              sx={{ color: "rgba(255,255,255,0.5)" }}
+            >
+              {detailModel.provider}
+            </Typography>
+          </Stack>
+
+          {/* Description */}
+          <Typography
+            variant="body2"
+            sx={{
+              color: "rgba(255,255,255,0.65)",
+              lineHeight: 1.6,
+              fontSize: "0.8125rem",
+            }}
+          >
+            {detailModel.description}
+          </Typography>
+
+          {/* Other details: context length + capability badges */}
+          <Stack direction="row" sx={{ flexWrap: "wrap", gap: 0.75 }}>
+            <Chip
+              label={`${formatContextLength(detailModel.contextLength)} ctx`}
+              size="small"
+              sx={tagChipSx}
+            />
+            {detailModel.supportsVision && (
+              <Chip label="Vision" size="small" sx={tagChipSx} />
+            )}
+            {detailModel.supportsTools && (
+              <Chip label="Tools" size="small" sx={tagChipSx} />
+            )}
+            {detailModel.supportsStreaming && (
+              <Chip label="Streaming" size="small" sx={tagChipSx} />
+            )}
+          </Stack>
+        </Stack>
+      ) : (
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: 200,
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              color: "rgba(255,255,255,0.35)",
+              textAlign: "center",
+              fontSize: "0.8125rem",
+            }}
+          >
+            Select a model to see details
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  );
+
+  const modalContent = (
+    <Stack direction="row" sx={{ alignItems: "flex-start" }}>
+      <Box sx={{ flex: 1, minWidth: 0 }}>{filtersAndList}</Box>
+      {detailsPanel}
+    </Stack>
   );
 
   return (

@@ -68,8 +68,7 @@ export const MessageBubble = memo(function MessageBubble({
         >
           {showTokens && (
             <Typography variant="caption" color="text.disabled">
-              Prompt Tokens: {message.promptTokens}↑ | Completion Tokens:{" "}
-              {message.completionTokens}↓
+              Tokens: {message.totalTokens}
             </Typography>
           )}
           {!isUser && message.reasoning && (
