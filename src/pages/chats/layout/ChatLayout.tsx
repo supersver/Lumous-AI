@@ -51,22 +51,35 @@ export function ChatLayout() {
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "100%",
+        height: "100dvh",
         minHeight: 0,
         bgcolor: "background.default",
         color: "text.primary",
       }}
     >
-      <Outlet />
-      <PromptInput
-        canSend={canSend}
-        draft={draft}
-        isSending={isStreaming}
-        selectedModelName={selectedModel?.name}
-        onDraftChange={setDraft}
-        onSend={handleSend}
-        onStopStreaming={stopStreaming}
-      />
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          overflowX: "hidden",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <Outlet />
+      </Box>
+
+      <Box sx={{ flexShrink: 0 }}>
+        <PromptInput
+          canSend={canSend}
+          draft={draft}
+          isSending={isStreaming}
+          selectedModelName={selectedModel?.name}
+          onDraftChange={setDraft}
+          onSend={handleSend}
+          onStopStreaming={stopStreaming}
+        />
+      </Box>
     </Box>
   );
 }

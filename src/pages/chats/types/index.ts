@@ -10,6 +10,9 @@ export interface ChatMessage {
   role: ChatRole;
   content: string;
   createdAt: string;
+  totalTokens: number;
+  promptTokens: number;
+  completionTokens: number;
   modelId?: string;
   modelName?: string;
   status?: ChatMessageStatus;

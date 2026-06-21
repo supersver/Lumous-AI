@@ -1,10 +1,6 @@
-import Box from "@mui/material/Box";
-import CircularProgress from "@mui/material/CircularProgress";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import { ChatCircleIcon } from "@phosphor-icons/react";
 import type { RefObject } from "react";
+import { Box, Paper, Stack, Typography, CircularProgress } from "@mui/material";
+import { ChatCircleIcon } from "@phosphor-icons/react";
 
 import type { ChatSession } from "../types";
 import { MessageBubble } from "./MessageBubble";
@@ -79,10 +75,7 @@ export function MessagesArea({
         py: 3,
       }}
     >
-      <Stack
-        spacing={2.5}
-        sx={{ mx: "auto", width: "100%", maxWidth: 896 }}
-      >
+      <Stack spacing={2.5} sx={{ mx: "auto", width: "100%", maxWidth: 896 }}>
         {session.messages.map((message) => (
           <MessageBubble
             key={message.id}

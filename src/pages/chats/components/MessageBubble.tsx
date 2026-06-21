@@ -1,10 +1,8 @@
-import { Avatar, Box, Chip, Paper, Stack, Typography } from "@mui/material";
+import { Box, Paper, Stack, Typography } from "@mui/material";
 import { memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import logo from "@/assets/logo.svg";
 
-import { formatTime } from "@/utils/time";
 import type { ChatMessage } from "../types";
 import { MarkdownComponents } from "./MarkdownComponents";
 
@@ -23,7 +21,7 @@ const StreamingCursor = ({ hasContent }: { hasContent: boolean }) => (
       height: 16,
       ml: hasContent ? 0.5 : 0,
       mb: -0.25,
-      borderRadius: 0.5,
+      borderRadius: 0.8,
       bgcolor: "secondary.light",
       animation: "streamingCursorBlink 1s steps(2, start) infinite",
       "@keyframes streamingCursorBlink": {
@@ -36,12 +34,12 @@ const StreamingCursor = ({ hasContent }: { hasContent: boolean }) => (
 
 export const MessageBubble = memo(function MessageBubble({
   message,
-  userInitial,
 }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const isStreaming = message.status === "streaming";
   const isError = message.status === "error";
   const shouldRenderMarkdown = !isUser && !isStreaming && !isError;
+  const showTokens = !isUser && !isStreaming && message.totalTokens != null;
 
   return (
     <Stack
@@ -50,29 +48,6 @@ export const MessageBubble = memo(function MessageBubble({
       spacing={1.5}
       sx={{ alignItems: "flex-start" }}
     >
-      <Avatar
-        variant="rounded"
-        sx={{
-          width: 36,
-          height: 36,
-          flexShrink: 0,
-          bgcolor: isUser ? "primary.dark" : "transparent",
-          color: isUser ? "primary.light" : "",
-        }}
-      >
-        {isUser ? (
-          <Typography variant="caption" sx={{ fontWeight: 600 }}>
-            {userInitial}
-          </Typography>
-        ) : (
-          <img
-            src={logo}
-            alt="Lumous AI"
-            style={{ width: "auto", height: 25, display: "block" }}
-          />
-        )}
-      </Avatar>
-
       <Box
         sx={{
           minWidth: 0,
@@ -91,14 +66,11 @@ export const MessageBubble = memo(function MessageBubble({
             flexWrap: "wrap",
           }}
         >
-          <Typography variant="caption" color="text.secondary">
-            {isUser ? "You" : "Lumous AI"}
-          </Typography>
-          <Typography variant="caption" color="text.disabled">
-            {formatTime(message.createdAt)}
-          </Typography>
-          {message.modelName && (
-            <Chip label={message.modelName} size="small" variant="outlined" />
+          {showTokens && (
+            <Typography variant="caption" color="text.disabled">
+              Prompt Tokens: {message.promptTokens}↑ | Completion Tokens:{" "}
+              {message.completionTokens}↓
+            </Typography>
           )}
         </Stack>
 
