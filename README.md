@@ -2,7 +2,7 @@
 
 ### Open-source AI workspace for developers and teams
 
-🌐 **Website:** https://lumous-ai-web.vercel.app
+🌐 **Website:** https://getlumous.in
 
 Connect your own AI providers, bring your own API keys, track usage across models, and gain complete visibility into costs, tokens, and provider activity.
 
@@ -162,7 +162,7 @@ Core API and platform services.
 Repository:
 
 ```text
-Lumous-AI-BE
+Lumous-BE
 ```
 
 Features:
