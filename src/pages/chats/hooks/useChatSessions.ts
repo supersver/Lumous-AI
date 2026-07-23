@@ -111,13 +111,21 @@ export function useChatSessionsState() {
       try {
         await deleteChatMutation.mutateAsync(sessionId);
         clearChatMessages(sessionId);
+        queryClient.setQueryData(chatsQueryKey, remainingSessions);
+
         setActiveSessionId(nextId);
         return nextId || null;
       } finally {
         deletingSessionIdsRef.current.delete(sessionId);
       }
     },
-    [clearChatMessages, deleteChatMutation, sessions, activeSessionId],
+    [
+      clearChatMessages,
+      deleteChatMutation,
+      sessions,
+      activeSessionId,
+      queryClient,
+    ],
   );
 
   const sendMessage = useCallback(
