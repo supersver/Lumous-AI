@@ -1,6 +1,6 @@
 import { useEffect, lazy, Suspense, type ReactNode } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, Outlet } from "react-router-dom";
 
 import { auth } from "@/lib/firebase";
 import { login } from "@/pages/auth";
@@ -26,6 +26,10 @@ const Analytics = lazy(() =>
 );
 const MainLayout = lazy(() =>
   import("@/components/layout").then((m) => ({ default: m.MainLayout })),
+);
+
+const Home = lazy(() =>
+  import("@/pages/home").then((m) => ({ default: m.Home })),
 );
 
 function PageLoader() {
@@ -114,16 +118,20 @@ export function AppRoutes() {
           <Route
             element={
               <ProtectedRoute>
-                <MainLayout />
+                <Outlet />
               </ProtectedRoute>
             }
           >
-            <Route element={<ChatLayout />}>
-              <Route path="/" element={<ChatIndexRedirect />} />
-              <Route path="/chat/:id" element={<Chats />} />
+            <Route element={<MainLayout />}>
+              <Route index element={<Home />} />
             </Route>
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/analytics" element={<Analytics />} />
+
+            <Route path="chats" element={<ChatLayout />}>
+              <Route index element={<ChatIndexRedirect />} />
+              <Route path=":chatId" element={<Chats />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="analytics" element={<Analytics />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<Navigate replace to="/" />} />

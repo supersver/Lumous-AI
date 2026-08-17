@@ -24,6 +24,7 @@ import {
   ChartBarIcon,
   CaretUpDownIcon,
   SidebarSimpleIcon,
+  ArrowLeftIcon,
 } from "@phosphor-icons/react";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -38,23 +39,23 @@ const COLLAPSED_WIDTH = 64;
 const TRANSITION = "width 0.2s ease, padding 0.2s ease";
 
 const navItems = [
-  { to: "/analytics", label: "Analytics", icon: ChartBarIcon },
-  { to: "/settings", label: "Settings", icon: GearSixIcon },
+  { to: "/chats/analytics", label: "Analytics", icon: ChartBarIcon },
+  { to: "/chats/settings", label: "Settings", icon: GearSixIcon },
 ];
 
-interface SidebarProps {
+interface ChatSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
   mobileOpen: boolean;
   onMobileClose: () => void;
 }
 
-export default function Sidebar({
+export default function ChatSidebar({
   collapsed,
   onToggle,
   mobileOpen,
   onMobileClose,
-}: SidebarProps) {
+}: ChatSidebarProps) {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -84,44 +85,64 @@ export default function Sidebar({
       <Box
         sx={{
           display: "flex",
+          flexDirection: effectiveCollapsed ? "column" : "row",
           alignItems: "center",
-          justifyContent: effectiveCollapsed ? "center" : "space-between",
+          justifyContent: "space-between",
           px: 1,
           pb: 2,
-          minHeight: 36,
+          minHeight: effectiveCollapsed ? 76 : 36,
         }}
       >
-        {!effectiveCollapsed && (
-          <Button
-            size="small"
-            sx={{
-              ml: "-10px",
-              display: "flex",
-              gap: "5px",
-              textTransform: "none",
-            }}
-            onClick={() => {
-              navigate("/");
-              if (isMobile) onMobileClose();
-            }}
-          >
-            <img
-              src={logo}
-              alt="Lumous AI"
-              style={{ width: "auto", height: 25, display: "block" }}
-            />
-            <Typography
-              component="span"
+        <Box sx={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+          <Tooltip title="Back to home" placement="right">
+            <IconButton
+              size="small"
+              aria-label="Back to home"
+              onClick={() => {
+                navigate("/");
+                if (isMobile) onMobileClose();
+              }}
               sx={{
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                letterSpacing: "-0.02em",
+                color: "text.secondary",
+                "&:hover": { color: "text.primary" },
               }}
             >
-              Lumous AI
-            </Typography>
-          </Button>
-        )}
+              <ArrowLeftIcon size={18} />
+            </IconButton>
+          </Tooltip>
+
+          {!effectiveCollapsed && (
+            <Button
+              size="small"
+              sx={{
+                ml: 0.5,
+                display: "flex",
+                gap: "5px",
+                textTransform: "none",
+              }}
+              onClick={() => {
+                navigate("/");
+                if (isMobile) onMobileClose();
+              }}
+            >
+              <img
+                src={logo}
+                alt="Lumous AI"
+                style={{ width: "auto", height: 25, display: "block" }}
+              />
+              <Typography
+                component="span"
+                sx={{
+                  fontSize: "1.25rem",
+                  fontWeight: 600,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Lumous AI
+              </Typography>
+            </Button>
+          )}
+        </Box>
 
         {/* Hide collapse toggle on mobile */}
         {!isMobile && (

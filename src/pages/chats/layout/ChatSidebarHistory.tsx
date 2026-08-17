@@ -29,7 +29,7 @@ interface ChatSidebarHistoryProps {
 export function ChatSidebarHistory({ collapsed }: ChatSidebarHistoryProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { id: activeRouteId } = useParams();
+  const { chatId: activeRouteId } = useParams();
   const { createSession, deleteSession, sessions } = useChatSessions();
   const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState<
     string | null
@@ -48,13 +48,13 @@ export function ChatSidebarHistory({ collapsed }: ChatSidebarHistoryProps) {
   };
 
   const handleSelectDropdownChat = (sessionId: string) => {
-    navigate(`/chat/${sessionId}`);
+    navigate(`/chats/${sessionId}`);
     handleCloseMenu();
   };
 
   const handleNewChat = async () => {
     const sessionId = await createSession(selectedModel?.id ?? "");
-    navigate(`/chat/${sessionId}`);
+    navigate(`/chats/${sessionId}`);
   };
 
   const handleDeleteChat = (
@@ -73,7 +73,7 @@ export function ChatSidebarHistory({ collapsed }: ChatSidebarHistoryProps) {
     setPendingDeleteSessionId(null);
     const nextSessionId = await deleteSession(sessionId);
     if (activeRouteId === sessionId) {
-      navigate(nextSessionId ? `/chat/${nextSessionId}` : "/", {
+      navigate(nextSessionId ? `/chats/${nextSessionId}` : "/chats", {
         replace: true,
       });
     }
@@ -135,7 +135,7 @@ export function ChatSidebarHistory({ collapsed }: ChatSidebarHistoryProps) {
           sx={{ minHeight: 0, flex: 1, overflowY: "auto", pr: 0.5 }}
         >
           {sessions.map((session) => {
-            const chatPath = `/chat/${session.id}`;
+            const chatPath = `/chats/${session.id}`;
             const isActive = location.pathname === chatPath;
 
             return (
@@ -217,7 +217,7 @@ export function ChatSidebarHistory({ collapsed }: ChatSidebarHistoryProps) {
           <MenuItem disabled>No chats available</MenuItem>
         ) : (
           sessions.map((session) => {
-            const isActive = location.pathname === `/chat/${session.id}`;
+            const isActive = location.pathname === `/chats/${session.id}`;
 
             return (
               <MenuItem
