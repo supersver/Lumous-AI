@@ -1,28 +1,20 @@
 import {
   Box,
-  Typography,
-  Avatar,
+  Button,
+  Divider,
   Drawer,
   IconButton,
-  Tooltip,
+  List,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
-  ListItemButton,
-  Divider,
-  List,
-  Menu,
-  MenuItem,
-  Button,
-  useTheme,
+  Tooltip,
   useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { signOut } from "firebase/auth";
-import { useState } from "react";
 import {
   GearSixIcon,
-  SignOutIcon,
-  ChartBarIcon,
-  CaretUpDownIcon,
   SidebarSimpleIcon,
   ArrowLeftIcon,
 } from "@phosphor-icons/react";
@@ -30,17 +22,24 @@ import { NavLink, useNavigate } from "react-router-dom";
 
 import { auth } from "@/lib/firebase";
 import { Modal } from "@/components/elements/Modal";
+import LogoWithName from "@/components/elements/Logo";
 import { useAppStore } from "@/store/useAppStore";
+
 import { ChatSidebarHistory } from "./ChatSidebarHistory";
 import logo from "@/assets/logo.svg";
+import { useState } from "react";
+import { UserDropdown } from "@/components/layout/UserDropdown";
 
 const DRAWER_WIDTH = 256;
 const COLLAPSED_WIDTH = 64;
 const TRANSITION = "width 0.2s ease, padding 0.2s ease";
 
 const navItems = [
-  { to: "/chats/analytics", label: "Analytics", icon: ChartBarIcon },
-  { to: "/chats/settings", label: "Settings", icon: GearSixIcon },
+  {
+    to: "/chats/settings",
+    label: "Settings",
+    icon: GearSixIcon,
+  },
 ];
 
 interface ChatSidebarProps {
@@ -60,23 +59,23 @@ export default function ChatSidebar({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  const user = useAppStore((s) => s.user);
-  const clearUser = useAppStore((s) => s.clearUser);
-  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const user = useAppStore((state) => state.user);
+  const clearUser = useAppStore((state) => state.clearUser);
 
-  // On mobile: always full-width, never collapsed
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
+
   const effectiveCollapsed = isMobile ? false : collapsed;
   const width = effectiveCollapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH;
 
-  const userInitial =
-    user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?";
-
   const handleConfirmLogout = async () => {
-    setIsLogoutModalOpen(false);
-    await signOut(auth);
-    clearUser();
-    navigate("/login");
+    try {
+      await signOut(auth);
+      clearUser();
+      setIsLogoutModalOpen(false);
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Failed to sign out:", error);
+    }
   };
 
   const drawerContent = (
@@ -93,18 +92,29 @@ export default function ChatSidebar({
           minHeight: effectiveCollapsed ? 76 : 36,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            minWidth: 0,
+          }}
+        >
           <Tooltip title="Back to home" placement="right">
             <IconButton
               size="small"
               aria-label="Back to home"
               onClick={() => {
                 navigate("/");
-                if (isMobile) onMobileClose();
+
+                if (isMobile) {
+                  onMobileClose();
+                }
               }}
               sx={{
                 color: "text.secondary",
-                "&:hover": { color: "text.primary" },
+                "&:hover": {
+                  color: "text.primary",
+                },
               }}
             >
               <ArrowLeftIcon size={18} />
@@ -122,29 +132,18 @@ export default function ChatSidebar({
               }}
               onClick={() => {
                 navigate("/");
-                if (isMobile) onMobileClose();
+
+                if (isMobile) {
+                  onMobileClose();
+                }
               }}
             >
-              <img
-                src={logo}
-                alt="Lumous AI"
-                style={{ width: "auto", height: 25, display: "block" }}
-              />
-              <Typography
-                component="span"
-                sx={{
-                  fontSize: "1.25rem",
-                  fontWeight: 600,
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                Lumous AI
-              </Typography>
+              <LogoWithName height={20} />
             </Button>
           )}
         </Box>
 
-        {/* Hide collapse toggle on mobile */}
+        {/* Collapse toggle */}
         {!isMobile && (
           <Tooltip
             title={effectiveCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -155,15 +154,26 @@ export default function ChatSidebar({
               onClick={onToggle}
               sx={{
                 color: "text.secondary",
-                "&:hover": { color: "text.primary" },
+                "&:hover": {
+                  color: "text.primary",
+                },
               }}
             >
               {effectiveCollapsed ? (
-                <Box sx={{ display: "flex", gap: "3px", alignItems: "center" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: "3px",
+                    alignItems: "center",
+                  }}
+                >
                   <img
                     src={logo}
                     alt="Lumous AI"
-                    style={{ width: 30, height: 30 }}
+                    style={{
+                      width: 30,
+                      height: 30,
+                    }}
                   />
                 </Box>
               ) : (
@@ -174,10 +184,12 @@ export default function ChatSidebar({
         )}
       </Box>
 
+      {/* Chat history */}
       <ChatSidebarHistory collapsed={effectiveCollapsed} />
 
       <Divider sx={{ my: 1.5 }} />
 
+      {/* Navigation */}
       <List dense disablePadding>
         {navItems.map(({ to, label, icon: Icon }) => (
           <Tooltip
@@ -189,7 +201,9 @@ export default function ChatSidebar({
               component={NavLink}
               to={to}
               onClick={() => {
-                if (isMobile) onMobileClose();
+                if (isMobile) {
+                  onMobileClose();
+                }
               }}
               sx={{
                 mb: 0.5,
@@ -210,10 +224,15 @@ export default function ChatSidebar({
               >
                 <Icon size={18} />
               </ListItemIcon>
+
               {!effectiveCollapsed && (
                 <ListItemText
                   primary={label}
-                  slotProps={{ primary: { variant: "body2" } }}
+                  slotProps={{
+                    primary: {
+                      variant: "body2",
+                    },
+                  }}
                 />
               )}
             </ListItemButton>
@@ -224,109 +243,21 @@ export default function ChatSidebar({
       {/* User section */}
       <Box sx={{ mt: "auto" }}>
         <Divider sx={{ mb: 1.5 }} />
-        <Tooltip
-          title={effectiveCollapsed ? (user?.name ?? "User") : ""}
-          placement="right"
-        >
-          <ListItemButton
-            onClick={(e) => setMenuAnchor(e.currentTarget)}
-            sx={{
-              borderRadius: 2,
-              gap: 1,
-              justifyContent: effectiveCollapsed ? "center" : "flex-start",
-              px: effectiveCollapsed ? 1 : 2,
-              "&:hover": { bgcolor: "action.hover" },
-            }}
-          >
-            <Avatar
-              sx={{
-                width: 28,
-                height: 28,
-                fontSize: 12,
-                bgcolor: "secondary.dark",
-                color: "secondary.light",
-                flexShrink: 0,
-              }}
-            >
-              {userInitial}
-            </Avatar>
-            {!effectiveCollapsed && (
-              <>
-                <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <Typography
-                    variant="caption"
-                    noWrap
-                    sx={{ fontWeight: 500, display: "block" }}
-                  >
-                    {user?.name ?? "User"}
-                  </Typography>
-                </Box>
-                <CaretUpDownIcon
-                  size={14}
-                  style={{ flexShrink: 0, opacity: 0.4 }}
-                />
-              </>
-            )}
-          </ListItemButton>
-        </Tooltip>
-      </Box>
 
-      {/* Dropdown menu */}
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={() => setMenuAnchor(null)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        transformOrigin={{ vertical: "bottom", horizontal: "center" }}
-        slotProps={{
-          paper: {
-            sx: {
-              width: 200,
-              borderRadius: 2,
-              border: "1px solid",
-              borderColor: "divider",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
-              mb: 0.5,
-            },
-          },
-        }}
-      >
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontWeight: 600, display: "block" }}
-          >
-            {user?.name ?? "User"}
-          </Typography>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: "block" }}
-          >
-            {user?.email}
-          </Typography>
-        </Box>
-        <Divider />
-        <MenuItem
-          onClick={() => {
-            setMenuAnchor(null);
+        <UserDropdown
+          user={user}
+          collapsed={effectiveCollapsed}
+          fullWidth
+          onProfile={() => {
+            navigate("/profile");
+          }}
+          onSignOut={() => {
             setIsLogoutModalOpen(true);
           }}
-          sx={{
-            gap: 1.5,
-            mt: 1.5,
-            mx: 0.5,
-            mb: 0.5,
-            borderRadius: 1.5,
-            color: "error.light",
-            "&:hover": { bgcolor: "error.dark", opacity: 0.9, color: "white" },
-          }}
-        >
-          <SignOutIcon size={16} />
-          <Typography variant="body2">Sign out</Typography>
-        </MenuItem>
-      </Menu>
+        />
+      </Box>
 
+      {/* Logout confirmation */}
       <Modal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
@@ -340,13 +271,15 @@ export default function ChatSidebar({
 
   return (
     <>
-      {/* Mobile: temporary overlay drawer */}
+      {/* Mobile */}
       {isMobile ? (
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={onMobileClose}
-          ModalProps={{ keepMounted: true }}
+          ModalProps={{
+            keepMounted: true,
+          }}
           sx={{
             "& .MuiDrawer-paper": {
               width: DRAWER_WIDTH,
@@ -361,7 +294,7 @@ export default function ChatSidebar({
           {drawerContent}
         </Drawer>
       ) : (
-        /* Desktop: permanent drawer */
+        /* Desktop */
         <Drawer
           variant="permanent"
           sx={{

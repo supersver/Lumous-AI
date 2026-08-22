@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import {
-  CaretDownIcon,
+  CaretUpDownIcon,
   SignOutIcon,
   UserCircleIcon,
 } from "@phosphor-icons/react";
@@ -22,12 +22,16 @@ interface User {
 
 interface UserDropdownProps {
   user?: User | null;
+  collapsed?: boolean;
+  fullWidth?: boolean;
   onProfile?: () => void;
   onSignOut?: () => void;
 }
 
 export function UserDropdown({
   user,
+  collapsed = false,
+  fullWidth = false,
   onProfile,
   onSignOut,
 }: UserDropdownProps) {
@@ -42,29 +46,43 @@ export function UserDropdown({
     setAnchorEl(null);
   };
 
-  const handleProfile = () => {
-    handleClose();
-    onProfile?.();
-  };
-
-  const handleSignOut = () => {
-    handleClose();
-    onSignOut?.();
-  };
+  const menuItems = [
+    {
+      label: "Profile",
+      icon: UserCircleIcon,
+      onClick: onProfile,
+    },
+    {
+      label: "Sign out",
+      icon: SignOutIcon,
+      onClick: onSignOut,
+      color: "error.light",
+      hover: {
+        bgcolor: "error.dark",
+        opacity: 0.9,
+        color: "white",
+      },
+    },
+  ];
 
   return (
-    <Box>
+    <>
       <Button
         aria-label="User menu"
         aria-haspopup="menu"
         aria-expanded={open ? "true" : undefined}
         onClick={(event) => setAnchorEl(event.currentTarget)}
         sx={{
+          width: fullWidth ? "100%" : "auto",
+          minWidth: 0,
+          justifyContent: collapsed ? "center" : "flex-start",
           gap: 1,
-          textTransform: "none",
+          px: collapsed ? 0.75 : 1,
+          py: 0.75,
           borderRadius: 2,
-          px: 1,
+          textTransform: "none",
           color: "text.primary",
+          flexShrink: 0,
           "&:hover": {
             bgcolor: "action.hover",
           },
@@ -77,28 +95,43 @@ export function UserDropdown({
             fontSize: 12,
             bgcolor: "secondary.dark",
             color: "text.primary",
+            flexShrink: 0,
           }}
         >
           {userInitial}
         </Avatar>
 
-        <Typography
-          variant="body2"
-          noWrap
-          sx={{
-            fontWeight: 500,
-            maxWidth: 160,
-          }}
-        >
-          {user?.name ?? "User"}
-        </Typography>
+        {!collapsed && (
+          <>
+            <Box
+              sx={{
+                minWidth: 0,
+                flex: fullWidth ? 1 : "unset",
+                textAlign: "left",
+              }}
+            >
+              <Typography
+                variant="caption"
+                noWrap
+                sx={{
+                  display: "block",
+                  fontWeight: 500,
+                  maxWidth: fullWidth ? "100%" : 160,
+                }}
+              >
+                {user?.name ?? "User"}
+              </Typography>
+            </Box>
 
-        <CaretDownIcon
-          size={14}
-          style={{
-            opacity: 0.4,
-          }}
-        />
+            <CaretUpDownIcon
+              size={14}
+              style={{
+                flexShrink: 0,
+                opacity: 0.4,
+              }}
+            />
+          </>
+        )}
       </Button>
 
       <Menu
@@ -106,18 +139,19 @@ export function UserDropdown({
         open={open}
         onClose={handleClose}
         anchorOrigin={{
-          vertical: "bottom",
+          vertical: collapsed ? "top" : "bottom",
           horizontal: "right",
         }}
         transformOrigin={{
-          vertical: "top",
+          vertical: collapsed ? "bottom" : "top",
           horizontal: "right",
         }}
         slotProps={{
           paper: {
             sx: {
               width: 220,
-              mt: 0.5,
+              mt: collapsed ? 0 : 0.5,
+              mb: collapsed ? 0.5 : 0,
               borderRadius: 2,
               border: "1px solid",
               borderColor: "divider",
@@ -153,55 +187,41 @@ export function UserDropdown({
 
         <Divider />
 
-        <MenuItem
-          onClick={handleProfile}
-          sx={{
-            gap: 1.5,
-            mt: 1,
-            mx: 0.5,
-            borderRadius: 1.5,
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: "auto",
-              color: "inherit",
-            }}
-          >
-            <UserCircleIcon size={16} />
-          </ListItemIcon>
+        {menuItems.map((item, index) => {
+          const Icon = item.icon;
 
-          <Typography variant="body2">Profile</Typography>
-        </MenuItem>
+          return (
+            <MenuItem
+              key={item.label}
+              onClick={() => {
+                handleClose();
+                item.onClick?.();
+              }}
+              sx={{
+                mt: index === 0 ? 1 : 0.5,
+                mx: 0.5,
+                mb: index === menuItems.length - 1 ? 0.5 : 0,
+                borderRadius: 1.5,
+                color: item.color ?? "inherit",
+                "&:hover": item.hover,
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  width: 16,
+                  mr: 1,
+                  color: "inherit",
+                }}
+              >
+                <Icon size={16} />
+              </ListItemIcon>
 
-        <MenuItem
-          onClick={handleSignOut}
-          sx={{
-            gap: 1.5,
-            mt: 0.5,
-            mx: 0.5,
-            mb: 0.5,
-            borderRadius: 1.5,
-            color: "error.light",
-            "&:hover": {
-              bgcolor: "error.dark",
-              opacity: 0.9,
-              color: "white",
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: "auto",
-              color: "inherit",
-            }}
-          >
-            <SignOutIcon size={16} />
-          </ListItemIcon>
-
-          <Typography variant="body2">Sign out</Typography>
-        </MenuItem>
+              <Typography variant="body2">{item.label}</Typography>
+            </MenuItem>
+          );
+        })}
       </Menu>
-    </Box>
+    </>
   );
 }
