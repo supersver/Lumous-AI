@@ -1,31 +1,51 @@
 import { createTheme } from "@mui/material/styles";
 
+declare module "@mui/material/styles" {
+  interface Palette {
+    contentSecondary: string;
+  }
+
+  interface PaletteOptions {
+    contentSecondary?: string;
+  }
+}
+
 export const appTheme = createTheme({
   palette: {
     mode: "dark",
+
     primary: {
       main: "#4fb0bd",
       contrastText: "#020617",
     },
+
     secondary: {
       main: "#818cf8",
     },
+
     background: {
       default: "#020617",
       paper: "#0f172a",
     },
+
     text: {
       primary: "#f1f5f9",
       secondary: "#94a3b8",
     },
+
+    contentSecondary: "#8FA0B5",
+
     divider: "#1e293b",
+
     error: {
       main: "#f87171",
     },
   },
+
   shape: {
     borderRadius: 8,
   },
+
   typography: {
     fontFamily: [
       "ui-sans-serif",
@@ -35,6 +55,7 @@ export const appTheme = createTheme({
       "Segoe UI Emoji",
     ].join(","),
   },
+
   components: {
     MuiCssBaseline: {
       styleOverrides: {
@@ -43,6 +64,7 @@ export const appTheme = createTheme({
         },
       },
     },
+
     MuiDrawer: {
       styleOverrides: {
         paper: {
@@ -51,6 +73,7 @@ export const appTheme = createTheme({
         },
       },
     },
+
     MuiButton: {
       styleOverrides: {
         root: {
@@ -58,6 +81,7 @@ export const appTheme = createTheme({
         },
       },
     },
+
     MuiListItemButton: {
       styleOverrides: {
         root: {

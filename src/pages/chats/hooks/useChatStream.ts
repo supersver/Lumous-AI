@@ -267,12 +267,10 @@ export function useChatStream(): ChatStreamControls {
                 content: streamedContentRef.current,
                 status: "streaming",
               });
-              useChatStreamStore
-                .getState()
-                .updateActiveStream({
-                  assistantMessageId: serverId,
-                  content: streamedContentRef.current,
-                });
+              useChatStreamStore.getState().updateActiveStream({
+                assistantMessageId: serverId,
+                content: streamedContentRef.current,
+              });
             }
           } else if (event === "token") {
             const chunk =
@@ -317,7 +315,10 @@ export function useChatStream(): ChatStreamControls {
           qc.invalidateQueries({ queryKey: chatsQueryKey }),
         ]);
       } catch (err: unknown) {
-        if (abort.signal.aborted || (err instanceof Error && err.name === "AbortError")) {
+        if (
+          abort.signal.aborted ||
+          (err instanceof Error && err.name === "AbortError")
+        ) {
           return;
         }
 
@@ -327,7 +328,8 @@ export function useChatStream(): ChatStreamControls {
         if (s) {
           updateMessage(chatId, s.assistantMessageId, {
             content:
-              streamedContentRef.current || "Couldn't finish response. Try again.",
+              streamedContentRef.current ||
+              "Couldn't finish response. Try again.",
             error: message,
             status: "error",
           });

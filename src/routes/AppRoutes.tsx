@@ -124,13 +124,13 @@ export function AppRoutes() {
           >
             <Route element={<MainLayout />}>
               <Route index element={<Home />} />
+              <Route path="analytics" element={<Analytics />} />
             </Route>
 
             <Route path="chats" element={<ChatLayout />}>
               <Route index element={<ChatIndexRedirect />} />
               <Route path=":chatId" element={<Chats />} />
               <Route path="settings" element={<Settings />} />
-              <Route path="analytics" element={<Analytics />} />
             </Route>
           </Route>
 
