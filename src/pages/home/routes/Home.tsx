@@ -1,7 +1,7 @@
 import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
 import { ChatCircleTextIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
-
+import sparkle from "@/assets/sparkle.svg";
 import { useAppStore } from "@/store/useAppStore";
 import { ToolCard } from "../components/ToolCard";
 
@@ -34,30 +34,47 @@ export function Home() {
         py: { xs: 3, sm: 4 },
       }}
     >
-      <Box sx={{ width: "100%", maxWidth: 880 }}>
-        <Box sx={{ mb: 4 }}>
-          <Typography
-            variant="h4"
-            component="h1"
-            sx={{ fontWeight: 600, letterSpacing: "-0.02em" }}
-          >
-            Welcome back{firstName === "there" ? "" : `, ${firstName}`} 👋
-          </Typography>
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            sx={{ mt: 1, lineHeight: 1.7 }}
-          >
-            What would you like to do today?
-          </Typography>
+      <Box sx={{ width: "100%" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{ fontWeight: 600, letterSpacing: "-0.02em" }}
+            >
+              Hello{firstName === "there" ? "" : `, ${firstName}`}
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ mt: 1, lineHeight: 1.7 }}
+            >
+              Select a tool below to begin. Lumous AI integrates your workflows,
+              tracking, and insights into one seamless hub.{" "}
+            </Typography>
+          </Box>
+          <img
+            src={sparkle}
+            alt="Lumous AI"
+            style={{
+              width: "auto",
+              display: "block",
+            }}
+          />
         </Box>
 
         <Typography
           variant="overline"
           component="h2"
-          sx={{ color: "text.secondary", letterSpacing: "0.08em" }}
+          sx={{ color: "text.primary", letterSpacing: "0.08em" }}
         >
-          Your tools
+          Active Workspaces
         </Typography>
 
         <Box

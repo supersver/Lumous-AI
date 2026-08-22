@@ -32,7 +32,7 @@ export function NavBar() {
         justifyContent: "space-between",
         height: 56,
         width: "100%",
-        px: 2,
+        px: 7,
         bgcolor: "background.paper",
         borderBottom: "1px solid",
         borderColor: "divider",

@@ -26,6 +26,7 @@ export function MainLayout() {
           overflow: "auto",
           display: "flex",
           flexDirection: "column",
+          px: 3.5,
         }}
       >
         <Outlet />
