@@ -14,10 +14,10 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import logo from "@/assets/logo.svg";
 import { auth } from "@/lib/firebase";
 import { useAppStore } from "@/store/useAppStore";
 import { login } from "../api/login";
+import LogoWithName from "@/components/elements/Logo";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -102,24 +102,8 @@ export function Login() {
           py: 5,
         }}
       >
-        <Box sx={{ mb: 4, display: "flex", alignItems: "center", gap: 1 }}>
-          <img
-            src={logo}
-            alt="Lumous AI"
-            style={{ width: "auto", height: 40 }}
-          />
-          <Typography
-            component="span"
-            sx={{
-              fontSize: "2rem",
-              fontWeight: 600,
-              letterSpacing: "-0.02em",
-              color: "text.primary",
-            }}
-          >
-            Lumous AI
-          </Typography>
-        </Box>
+        <LogoWithName height={40} fontSize="1.5rem" />
+
         <Box sx={{ maxWidth: 560 }}>
           <Typography
             variant="overline"
@@ -263,31 +247,7 @@ export function Login() {
               boxShadow: "0 20px 45px rgba(15, 23, 42, 0.08)",
             }}
           >
-            <Box
-              sx={{
-                mb: 4,
-                display: { xs: "flex", lg: "none" },
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <img
-                src={logo}
-                alt="Lumous AI"
-                style={{ width: "auto", height: 40 }}
-              />
-              <Typography
-                component="span"
-                sx={{
-                  fontSize: "1rem",
-                  fontWeight: 600,
-                  letterSpacing: "-0.02em",
-                  color: "text.primary",
-                }}
-              >
-                Lumous AI
-              </Typography>
-            </Box>
+            <LogoWithName height={30} hideOnDesktop />
 
             <Typography
               variant="overline"
