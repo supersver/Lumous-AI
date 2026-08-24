@@ -10,7 +10,7 @@ import { useChatStream } from "../hooks/useChatStream";
 import { useChatStreamStore } from "../store/useChatStreamStore";
 
 export function Chats() {
-  const { id: chatId } = useParams<{ id: string }>();
+  const { chatId } = useParams<{ chatId: string }>();
   const { user } = useAppStore(
     useShallow((state) => ({
       user: state.user,

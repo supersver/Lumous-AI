@@ -24,6 +24,7 @@ interface ModalProps {
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: ModalVariant;
+  maxWidth?: number;
 }
 
 export function Modal({
@@ -35,6 +36,7 @@ export function Modal({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   variant = "default",
+  maxWidth = 820,
 }: ModalProps) {
   const isDanger = variant === "danger";
 
@@ -56,7 +58,7 @@ export function Modal({
         // Target the internal paper container to bypass the PaperProps TS error
         "& .MuiDialog-paper": {
           width: "100%",
-          maxWidth: 820,
+          maxWidth,
           borderRadius: "16px",
           bgcolor: "#121214",
           backgroundImage: "none",

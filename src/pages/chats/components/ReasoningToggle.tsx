@@ -40,7 +40,7 @@ export function ReasoningToggle({
         },
       }}
     >
-      Reasoning
+      Thinking
     </Button>
   );
 }

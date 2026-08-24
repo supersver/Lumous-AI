@@ -54,7 +54,7 @@ axios.interceptors.response.use(
       window.location.assign("/login");
     } else {
       toast.error(error?.response.data.error.message);
-      if (ENVIRONMENT) {
+      if (ENVIRONMENT === "development") {
         console.log("API Error:", {
           url: error?.config?.url,
           method: error?.config?.method,

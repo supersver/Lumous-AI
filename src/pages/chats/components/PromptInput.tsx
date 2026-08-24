@@ -108,7 +108,7 @@ export function PromptInput({
     >
       {!selectedModel && (
         <Button
-          onClick={() => navigate("/settings")}
+          onClick={() => navigate("/chats/settings")}
           sx={{ fontWeight: 600, fontSize: 14, color: "yellow" }}
         >
           To Start, provide API Key in Settings <ArrowUpRightIcon />

@@ -8,19 +8,24 @@ import { useSendMessage } from "../api/sendMessage";
 import { useChatMessagesStore } from "../store/useChatMessagesStore";
 import type { ChatMessage, ChatModelSnapshot } from "../types";
 
+// Stable empty array so useMemo doesn't return a new reference every render
+// when chatsData is undefined (which would re-trigger the sync effect).
+const EMPTY_SESSIONS: never[] = [];
+
 export function useChatSessionsState() {
   const queryClient = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<string>("");
   const deletingSessionIdsRef = useRef(new Set<string>());
 
   const { data: chatsData, isLoading } = useGetChats();
-  const sessions = useMemo(() => chatsData ?? [], [chatsData]);
+  const sessions = useMemo(
+    () => chatsData ?? EMPTY_SESSIONS,
+    [chatsData],
+  );
 
   useEffect(() => {
     if (sessions.length === 0) {
-      if (activeSessionId) {
-        setActiveSessionId("");
-      }
+      setActiveSessionId((prev) => (prev ? "" : prev));
       return;
     }
 
@@ -28,10 +33,16 @@ export function useChatSessionsState() {
       (session) => session.id === activeSessionId,
     );
 
-    if (!activeSessionId || !activeSessionExists) {
-      setActiveSessionId(sessions[0].id);
+    if (!activeSessionExists) {
+      setActiveSessionId((prev) =>
+        prev === sessions[0].id ? prev : sessions[0].id,
+      );
     }
-  }, [sessions, activeSessionId]);
+  // activeSessionId is intentionally omitted: we only need to re-run when
+  // the session list changes, and we read activeSessionId via the closure
+  // snapshot that's already current at that point.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessions]);
 
   const { data: activeSession } = useGetChat(activeSessionId, {
     enabled: !!activeSessionId,
@@ -111,13 +122,21 @@ export function useChatSessionsState() {
       try {
         await deleteChatMutation.mutateAsync(sessionId);
         clearChatMessages(sessionId);
+        queryClient.setQueryData(chatsQueryKey, remainingSessions);
+
         setActiveSessionId(nextId);
         return nextId || null;
       } finally {
         deletingSessionIdsRef.current.delete(sessionId);
       }
     },
-    [clearChatMessages, deleteChatMutation, sessions, activeSessionId],
+    [
+      clearChatMessages,
+      deleteChatMutation,
+      sessions,
+      activeSessionId,
+      queryClient,
+    ],
   );
 
   const sendMessage = useCallback(

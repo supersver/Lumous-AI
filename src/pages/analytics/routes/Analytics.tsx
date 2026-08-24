@@ -1,9 +1,11 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import ButtonGroup from "@mui/material/ButtonGroup";
-import Grid from "@mui/material/Grid";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Grid,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { OverviewCards } from "../components/OverviewCards";
 import { CostOverTimeChart } from "../components/CostOverTimeChart.tsx";
 import { TokenUsageChart } from "../components/TokenUsageChart.tsx";
@@ -12,6 +14,9 @@ import {
   useAnalyticsDateRange,
   type DateRangePreset,
 } from "../hooks/useAnalyticsDateRange.ts";
+import { IconButton } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { CaretLeftIcon } from "@phosphor-icons/react";
 
 const PRESETS: { label: string; value: DateRangePreset }[] = [
   { label: "7 days", value: "7d" },
@@ -21,13 +26,13 @@ const PRESETS: { label: string; value: DateRangePreset }[] = [
 
 export function Analytics() {
   const { dateRange, activePreset, applyPreset } = useAnalyticsDateRange();
+  const navigate = useNavigate();
 
   return (
     <Stack
       sx={{
         p: 3,
         gap: 3,
-        // maxWidth: ,
         mx: "auto",
         width: "100%",
         overflowY: "auto",
@@ -37,13 +42,28 @@ export function Analytics() {
       <Box
         sx={{
           display: "flex",
-          alignItems: "flex-start",
+          alignItems: "flex-end",
           justifyContent: "space-between",
           flexWrap: "wrap",
           gap: 1.5,
         }}
       >
         <Box>
+          <IconButton
+            size="small"
+            aria-label="Back to home"
+            onClick={() => {
+              navigate("/");
+            }}
+            sx={{
+              fontSize: 14,
+              color: "text.secondary",
+              "&:hover": { color: "text.primary" },
+            }}
+          >
+            <CaretLeftIcon />
+            Back
+          </IconButton>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Analytics
           </Typography>
